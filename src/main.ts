@@ -56,7 +56,19 @@ function main() {
 
   const buffers = initBuffers(gl);
 
-  drawScene(gl, programInfo, buffers);
+  let then = 0;
+  
+  function render(now: number) {
+    now *= 0.001;
+    const dt = now - then;
+    then = now;
+    
+    drawScene(gl!, programInfo, buffers, dt);
+
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+
 }
 
 function initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string): WebGLProgram {
@@ -117,7 +129,10 @@ function initBuffers(gl: WebGLRenderingContext): Buffers {
   };
 }
 
-function drawScene(gl: WebGLRenderingContext, programInfo: ProgramInfo, buffers: Buffers) {
+let rotation = 0.0;
+function drawScene(gl: WebGLRenderingContext, programInfo: ProgramInfo, buffers: Buffers, dt: number) {
+  rotation += dt;
+  
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
@@ -135,6 +150,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: ProgramInfo, buffers:
   
   const modelViewMatrix = mat4.create();
   mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -6.0])
+  mat4.rotate(modelViewMatrix, modelViewMatrix, rotation, [0, 1, 0]);
   
   {
     const numComponents = 2;
