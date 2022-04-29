@@ -1,6 +1,8 @@
 import './style.css'
 import { mat4 } from 'gl-matrix';
 
+const WORLD_SIZE = 24;
+
 function error(message: string): never {
   alert(message);
   throw new Error(message);
@@ -10,11 +12,12 @@ type ProgramInfo = {
   program: WebGLProgram,
   attribLocations: {
     vertexPosition: number,
-    blockPosition: number,
+    textureCoord: number
   },
   uniformLocations: {
     projectionMatrix: WebGLUniformLocation,
     modelViewMatrix: WebGLUniformLocation,
+    sampler: WebGLUniformLocation,
   }
 };
 
@@ -25,22 +28,39 @@ function main() {
 
   if (!gl) error("Unable to initialize WebGL2");
 
-  const vsSource = `
-    attribute vec4 aVertexPosition;
+  const vsSource = `#version 300 es
+
+    // vertex attributes
+    in vec4 aVertexPosition;
+    in vec2 aTextureCoord;
   
-    attribute vec3 aBlockPosition;
+    out highp vec2 vTextureCoord;
   
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
     
     void main() {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(aBlockPosition, 0.0));
+      int x = gl_InstanceID % ${WORLD_SIZE};
+      int yz = gl_InstanceID / ${WORLD_SIZE};
+      int y = yz % ${WORLD_SIZE};
+      int z = yz / ${WORLD_SIZE};
+      
+      vec3 blockPosition = vec3(x, y, z);
+      gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(blockPosition, 0.0));
+      vTextureCoord = (aTextureCoord + vec2(gl_InstanceID % 12, 0.0)) / vec2(42.0, 1.0);
     }
   `;
 
-  const fsSource = `
+  const fsSource = `#version 300 es
+    precision mediump float;
+    precision lowp sampler3D;    out vec4 fragColor;
+  
+    in highp vec2 vTextureCoord;
+
+    uniform sampler2D uSampler;
+    
     void main() {
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+      fragColor = texture(uSampler, vTextureCoord);
     }
   `;
 
@@ -50,17 +70,20 @@ function main() {
     program: shaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-      blockPosition: gl.getAttribLocation(shaderProgram, 'aBlockPosition'),
+      textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix') ?? error("couldn't find uniform uProjectionMatrix"),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix') ?? error("couldn't find uniform uModelViewMatrix"),
+      sampler: gl.getUniformLocation(shaderProgram, 'uSampler') ?? error("couldn't find uniform uSampler"),
     }
   };
 
   console.log(programInfo.attribLocations)
 
   const buffers = initBuffers(gl);
+
+  const blocksTexture = loadTexture(gl, 'blocks.png')
 
   let then = 0;
 
@@ -69,7 +92,7 @@ function main() {
     const dt = now - then;
     then = now;
 
-    drawScene(gl!, programInfo, buffers, dt);
+    drawScene(gl!, blocksTexture, programInfo, buffers, dt);
 
     requestAnimationFrame(render);
   }
@@ -115,13 +138,50 @@ function loadShader(gl: WebGL2RenderingContext, type: number, source: string): W
 
 type Buffers = {
   vertexPosition: WebGLBuffer,
-  blockPosition: WebGLBuffer,
   indices: WebGLBuffer,
+  textureCoord: WebGLBuffer,
+}
+
+function loadTexture(gl: WebGL2RenderingContext, url: string): WebGLTexture {
+  const texture = gl.createTexture()!;
+
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Because images have to be downloaded over the internet
+  // they might take a moment until they are ready.
+  // Until then put a single pixel in the texture so we can
+  // use it immediately. When the image has finished downloading
+  // we'll update the texture with the contents of the image.
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+    width, height, border, srcFormat, srcType,
+    pixel);
+
+  const image = new Image();
+  image.onload = function() {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+      srcFormat, srcType, image);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  };
+  image.src = url;
+
+  return texture;
 }
 
 function initBuffers(gl: WebGL2RenderingContext): Buffers {
-  const vertexPositionBuffer = gl.createBuffer();
-  if (!vertexPositionBuffer) error("error creating buffer");
+  const vertexPositionBuffer = gl.createBuffer()!;
 
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
 
@@ -164,46 +224,69 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW);
-  
-  const indexBuffer = gl.createBuffer();
+
+  const indexBuffer = gl.createBuffer()!;
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  
+
   const indices = [
-    0,  1,  2,      0,  2,  3,    // front
-    4,  5,  6,      4,  6,  7,    // back
-    8,  9,  10,     8,  10, 11,   // top
-    12, 13, 14,     12, 14, 15,   // bottom
-    16, 17, 18,     16, 18, 19,   // right
-    20, 21, 22,     20, 22, 23,   // left
+    0, 1, 2, 0, 2, 3,    // front
+    4, 5, 6, 4, 6, 7,    // back
+    8, 9, 10, 8, 10, 11,   // top
+    12, 13, 14, 12, 14, 15,   // bottom
+    16, 17, 18, 16, 18, 19,   // right
+    20, 21, 22, 20, 22, 23,   // left
   ];
-  
+
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
 
-  const blockPositionBuffer = gl.createBuffer();
-  if (!blockPositionBuffer) error("error creating buffer")
+  const textureCoordBuffer = gl.createBuffer()!;
+  gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, blockPositionBuffer);
-
-  const blockPositions = [
-    0.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-    0.0, 1.0, 0.0,
-    -1.0, 0.0, 0.0,
-    0.0, -1.0, 0.0,
+  const textureCoordinates = [
+    // Front
+    0.0, 0.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+    // Back
+    0.0, 0.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+    // Top
+    0.0, 0.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+    // Bottom
+    0.0, 0.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+    // Right
+    0.0, 0.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
+    // Left
+    0.0, 0.0,
+    1.0, 0.0,
+    1.0, 1.0,
+    0.0, 1.0,
   ];
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(blockPositions), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
 
   return {
     vertexPosition: vertexPositionBuffer,
     indices: indexBuffer,
-    blockPosition: blockPositionBuffer,
+    textureCoord: textureCoordBuffer,
   };
 }
 
 let rotation = 0.0;
-function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers: Buffers, dt: number) {
+function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInfo: ProgramInfo, buffers: Buffers, dt: number) {
   rotation += dt;
 
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -222,8 +305,10 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers
   mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
 
   const modelViewMatrix = mat4.create();
-  mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -6.0])
-  mat4.rotate(modelViewMatrix, modelViewMatrix, rotation, [0, 1, 0]);
+  mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -24.0])
+  // mat4.rotate(modelViewMatrix, modelViewMatrix, rotation, [0, 1, 0]);
+  // mat4.rotate(modelViewMatrix, modelViewMatrix, rotation*.7, [0, 0, 1]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, Math.PI/4, [1, 0, 0]);
 
   {
     const numComponents = 3;
@@ -243,27 +328,12 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
 
-  {
-    const numComponents = 3;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.blockPosition);
-    gl.vertexAttribPointer(
-      programInfo.attribLocations.blockPosition,
-      numComponents,
-      type,
-      normalize,
-      stride,
-      offset,
-    )
-    gl.vertexAttribDivisor(programInfo.attribLocations.blockPosition, 1)
-    gl.enableVertexAttribArray(programInfo.attribLocations.blockPosition);
-  }
-  
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
+  gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-    
+
   gl.useProgram(programInfo.program);
 
   gl.uniformMatrix4fv(
@@ -278,13 +348,16 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers
     modelViewMatrix
   );
 
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.uniform1i(programInfo.uniformLocations.sampler, 0);
+
   {
     const offset = 0;
     const vertexCount = 36;
     const type = gl.UNSIGNED_SHORT;
-    const instanceCount = 5;
+    const instanceCount = 100000;
 
-    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, offset, vertexCount, 5);
     gl.drawElementsInstanced(gl.TRIANGLE_STRIP, vertexCount, type, offset, instanceCount)
   }
 }
