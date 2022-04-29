@@ -28,13 +28,13 @@ function main() {
   const vsSource = `
     attribute vec4 aVertexPosition;
   
-    attribute vec2 aBlockPosition;
+    attribute vec3 aBlockPosition;
   
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
     
     void main() {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(aBlockPosition, 0.0, 0.0));
+      gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(aBlockPosition, 0.0));
     }
   `;
 
@@ -57,18 +57,18 @@ function main() {
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix') ?? error("couldn't find uniform uModelViewMatrix"),
     }
   };
-  
+
   console.log(programInfo.attribLocations)
- 
+
   const buffers = initBuffers(gl);
 
   let then = 0;
-  
+
   function render(now: number) {
     now *= 0.001;
     const dt = now - then;
     then = now;
-    
+
     drawScene(gl!, programInfo, buffers, dt);
 
     requestAnimationFrame(render);
@@ -116,7 +116,9 @@ function loadShader(gl: WebGL2RenderingContext, type: number, source: string): W
 type Buffers = {
   vertexPosition: WebGLBuffer,
   blockPosition: WebGLBuffer,
+  indices: WebGLBuffer,
 }
+
 function initBuffers(gl: WebGL2RenderingContext): Buffers {
   const vertexPositionBuffer = gl.createBuffer();
   if (!vertexPositionBuffer) error("error creating buffer");
@@ -124,32 +126,78 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
 
   const vertexPositions = [
-    1.0, 1.0,
-    -1.0, 1.0,
-    1.0, -1.0,
-    -1.0, -1.0,
+    // Front face
+    0.0, 0.0, 1.0,
+    1.0, 0.0, 1.0,
+    1.0, 1.0, 1.0,
+    0.0, 1.0, 1.0,
+
+    // Back face
+    0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    1.0, 1.0, 0.0,
+    1.0, 0.0, 0.0,
+
+    // Top face
+    0.0, 1.0, 0.0,
+    0.0, 1.0, 1.0,
+    1.0, 1.0, 1.0,
+    1.0, 1.0, 0.0,
+
+    // Bottom face
+    0.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,
+    1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0,
+
+    // Right face
+    1.0, 0.0, 0.0,
+    1.0, 1.0, 0.0,
+    1.0, 1.0, 1.0,
+    1.0, 0.0, 1.0,
+
+    // Left face
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0,
+    0.0, 1.0, 1.0,
+    0.0, 1.0, 0.0,
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW);
   
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   
-  const blockPositionBuffer = gl.createBuffer();
-  if (!blockPositionBuffer) error("error creating buffer")
-  
-  gl.bindBuffer(gl.ARRAY_BUFFER, blockPositionBuffer);
-  
-  const blockPositions = [
-    0.0, 0.0,
-    1.0, 0.0,
-    0.0, 1.0,
-    -1.0, 0.0,
-    0.0, -1.0,
+  const indices = [
+    0,  1,  2,      0,  2,  3,    // front
+    4,  5,  6,      4,  6,  7,    // back
+    8,  9,  10,     8,  10, 11,   // top
+    12, 13, 14,     12, 14, 15,   // bottom
+    16, 17, 18,     16, 18, 19,   // right
+    20, 21, 22,     20, 22, 23,   // left
   ];
   
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+
+  const blockPositionBuffer = gl.createBuffer();
+  if (!blockPositionBuffer) error("error creating buffer")
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, blockPositionBuffer);
+
+  const blockPositions = [
+    0.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    -1.0, 0.0, 0.0,
+    0.0, -1.0, 0.0,
+  ];
+
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(blockPositions), gl.STATIC_DRAW);
 
   return {
     vertexPosition: vertexPositionBuffer,
+    indices: indexBuffer,
     blockPosition: blockPositionBuffer,
   };
 }
@@ -157,14 +205,14 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
 let rotation = 0.0;
 function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers: Buffers, dt: number) {
   rotation += dt;
-  
+
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
-  
+
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  
+
   const fieldOfView = Math.PI / 4;
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
@@ -172,13 +220,13 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers
 
   const projectionMatrix = mat4.create();
   mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-  
+
   const modelViewMatrix = mat4.create();
   mat4.translate(modelViewMatrix, modelViewMatrix, [-0.0, 0.0, -6.0])
   mat4.rotate(modelViewMatrix, modelViewMatrix, rotation, [0, 1, 0]);
-  
+
   {
-    const numComponents = 2;
+    const numComponents = 3;
     const type = gl.FLOAT;
     const normalize = false;
     const stride = 0;
@@ -194,9 +242,9 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers
     );
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
-  
+
   {
-    const numComponents = 2;
+    const numComponents = 3;
     const type = gl.FLOAT;
     const normalize = false;
     const stride = 0;
@@ -214,24 +262,30 @@ function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers
     gl.enableVertexAttribArray(programInfo.attribLocations.blockPosition);
   }
   
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    
   gl.useProgram(programInfo.program);
-  
+
   gl.uniformMatrix4fv(
     programInfo.uniformLocations.projectionMatrix,
     false,
     projectionMatrix
   );
-  
+
   gl.uniformMatrix4fv(
     programInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix
   );
-  
+
   {
     const offset = 0;
-    const vertexCount = 4;
+    const vertexCount = 36;
+    const type = gl.UNSIGNED_SHORT;
+    const instanceCount = 5;
+
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, offset, vertexCount, 5);
+    gl.drawElementsInstanced(gl.TRIANGLE_STRIP, vertexCount, type, offset, instanceCount)
   }
 }
 
