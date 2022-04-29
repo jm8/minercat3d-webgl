@@ -10,6 +10,7 @@ type ProgramInfo = {
   program: WebGLProgram,
   attribLocations: {
     vertexPosition: number,
+    blockPosition: number,
   },
   uniformLocations: {
     projectionMatrix: WebGLUniformLocation,
@@ -20,18 +21,20 @@ type ProgramInfo = {
 function main() {
   const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!;
 
-  const gl = canvas.getContext('webgl');
+  const gl = canvas.getContext('webgl2');
 
-  if (!gl) error("Unable to initialize WebGL");
+  if (!gl) error("Unable to initialize WebGL2");
 
   const vsSource = `
     attribute vec4 aVertexPosition;
-    
+  
+    attribute vec2 aBlockPosition;
+  
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
     
     void main() {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+      gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(aBlockPosition, 0.0, 0.0));
     }
   `;
 
@@ -46,14 +49,17 @@ function main() {
   const programInfo: ProgramInfo = {
     program: shaderProgram,
     attribLocations: {
-      vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition')
+      vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+      blockPosition: gl.getAttribLocation(shaderProgram, 'aBlockPosition'),
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix') ?? error("couldn't find uniform uProjectionMatrix"),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix') ?? error("couldn't find uniform uModelViewMatrix"),
     }
   };
-
+  
+  console.log(programInfo.attribLocations)
+ 
   const buffers = initBuffers(gl);
 
   let then = 0;
@@ -71,7 +77,7 @@ function main() {
 
 }
 
-function initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string): WebGLProgram {
+function initShaderProgram(gl: WebGL2RenderingContext, vsSource: string, fsSource: string): WebGLProgram {
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
   const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
@@ -90,7 +96,7 @@ function initShaderProgram(gl: WebGLRenderingContext, vsSource: string, fsSource
 }
 
 
-function loadShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
+function loadShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
   const shader = gl.createShader(type);
   if (!shader) error("error creating shader");
 
@@ -99,38 +105,57 @@ function loadShader(gl: WebGLRenderingContext, type: number, source: string): We
   gl.compileShader(shader);
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const log = gl.getShaderInfoLog(shader);
     gl.deleteShader(shader);
-    error(`error compiling shader: ${gl.getShaderInfoLog(shader)}`)
+    error(`error compiling shader: ${log}`)
   }
 
   return shader;
 }
 
 type Buffers = {
-  position: WebGLBuffer,
+  vertexPosition: WebGLBuffer,
+  blockPosition: WebGLBuffer,
 }
-function initBuffers(gl: WebGLRenderingContext): Buffers {
-  const positionBuffer = gl.createBuffer();
-  if (!positionBuffer) error("error creating buffer");
+function initBuffers(gl: WebGL2RenderingContext): Buffers {
+  const vertexPositionBuffer = gl.createBuffer();
+  if (!vertexPositionBuffer) error("error creating buffer");
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
 
-  const positions = [
+  const vertexPositions = [
     1.0, 1.0,
     -1.0, 1.0,
     1.0, -1.0,
     -1.0, -1.0,
   ];
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW);
+  
+  
+  const blockPositionBuffer = gl.createBuffer();
+  if (!blockPositionBuffer) error("error creating buffer")
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, blockPositionBuffer);
+  
+  const blockPositions = [
+    0.0, 0.0,
+    1.0, 0.0,
+    0.0, 1.0,
+    -1.0, 0.0,
+    0.0, -1.0,
+  ];
+  
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(blockPositions), gl.STATIC_DRAW);
 
   return {
-    position: positionBuffer
+    vertexPosition: vertexPositionBuffer,
+    blockPosition: blockPositionBuffer,
   };
 }
 
 let rotation = 0.0;
-function drawScene(gl: WebGLRenderingContext, programInfo: ProgramInfo, buffers: Buffers, dt: number) {
+function drawScene(gl: WebGL2RenderingContext, programInfo: ProgramInfo, buffers: Buffers, dt: number) {
   rotation += dt;
   
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -158,7 +183,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: ProgramInfo, buffers:
     const normalize = false;
     const stride = 0;
     const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertexPosition);
     gl.vertexAttribPointer(
       programInfo.attribLocations.vertexPosition,
       numComponents,
@@ -168,6 +193,25 @@ function drawScene(gl: WebGLRenderingContext, programInfo: ProgramInfo, buffers:
       offset,
     );
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+  }
+  
+  {
+    const numComponents = 2;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.blockPosition);
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.blockPosition,
+      numComponents,
+      type,
+      normalize,
+      stride,
+      offset,
+    )
+    gl.vertexAttribDivisor(programInfo.attribLocations.blockPosition, 1)
+    gl.enableVertexAttribArray(programInfo.attribLocations.blockPosition);
   }
   
   gl.useProgram(programInfo.program);
@@ -187,7 +231,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: ProgramInfo, buffers:
   {
     const offset = 0;
     const vertexCount = 4;
-    gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, offset, vertexCount, 5);
   }
 }
 
