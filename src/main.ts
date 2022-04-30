@@ -2,8 +2,9 @@ import './style.css'
 import { mat4, vec3 } from 'gl-matrix';
 import { update } from './game';
 
-const WORLD_SIZE = 24;
-const WORLD_DEPTH = 24;
+export const WORLD_SIZE = 24;
+export const WORLD_DEPTH = 24;
+export const LAYER_SIZE = WORLD_SIZE * WORLD_SIZE;
 
 function error(message: string): never {
   alert(message);
@@ -24,32 +25,35 @@ type ProgramInfo = {
   }
 };
 
-class Blocks {
+export class Blocks {
   array: Uint8Array
+  
   constructor() {
-    this.array = new Uint8Array(WORLD_SIZE * WORLD_SIZE * WORLD_DEPTH).map((_, i) => Math.floor(i/2) % 41)
+    this.array = new Uint8Array(LAYER_SIZE * WORLD_DEPTH).map((_, i) => Math.floor(i/2) % 41)
     console.log(this.array)
   }
   
+  gl: WebGL2RenderingContext | null = null
   buffer: WebGLBuffer | null = null
+
   getBlock(x: number, y: number, z: number): number {
     return this.array[x + WORLD_SIZE*(z + WORLD_SIZE*y)]
   }
 
-  sendLayer(gl: WebGL2RenderingContext, y: number) {
-    if (!this.buffer) return;
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, y*WORLD_SIZE*WORLD_SIZE, this.array, y*WORLD_SIZE*WORLD_SIZE, WORLD_SIZE*WORLD_SIZE)
+  sendLayer(y: number) {
+    if (!this.gl || !this.buffer) return;
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+    this.gl.bufferSubData(this.gl.ARRAY_BUFFER, y*LAYER_SIZE, this.array, y*LAYER_SIZE, LAYER_SIZE)
   }
 }
 
 let gameData = {
-  cameraPos: vec3.fromValues(9.383692741394043, 11.606156349182129, 7.4038004875183105),
-  cameraFront: vec3.fromValues(0.6053189635276794, -0.7092403173446655, -0.3613407611846924),
-  cameraUp: vec3.fromValues(0, 1, 0),
+  cameraPos: [9.3, 11.6, 7.4],
+  cameraFront: [-0.58, -0.80, -0.40],
+  cameraUp: [0, 1, 0],
   
-  yaw: -89.19999921321869,
-  pitch: -63.00000084936619,
+  pitch: -59.4,
+  yaw: -440.8,
   
   blocks: new Blocks(),
 };
@@ -350,6 +354,7 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
   gl.bufferData(gl.ARRAY_BUFFER, gameData.blocks.array, gl.DYNAMIC_DRAW);
 
   gameData.blocks.buffer = blocksBuffer;  
+  gameData.blocks.gl = gl;
 
   return {
     vertexPosition: vertexPositionBuffer,
@@ -429,7 +434,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     const offset = 0;
     const vertexCount = 36;
     const type = gl.UNSIGNED_SHORT;
-    const instanceCount = WORLD_SIZE * WORLD_SIZE * WORLD_DEPTH;
+    const instanceCount = LAYER_SIZE * WORLD_DEPTH;
 
     gl.drawElementsInstanced(gl.TRIANGLES, vertexCount, type, offset, instanceCount)
   }

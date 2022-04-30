@@ -1,8 +1,13 @@
 import { GameData } from "./main"
 import { vec2, vec3 } from "gl-matrix"
+import { generateLayer } from "./worldgen";
 
 let pressedKeys = Object.create(null);
-window.onkeydown = e => pressedKeys[e.code] = true;
+let justPressedKeys = Object.create(null);
+window.onkeydown = e => {
+  if (!pressedKeys[e.code]) justPressedKeys[e.code] = true;
+  pressedKeys[e.code] = true;
+}
 window.onkeyup = e => pressedKeys[e.code] = false;
 
 // mouseDelta is reset every update
@@ -16,9 +21,11 @@ window.addEventListener('mousemove', e => {
 export function update(gameData: GameData, dt: number) {
   keyboard(dt, gameData);
   mouse(dt, gameData);
-  if (pressedKeys.KeyX) {
-    console.log(gameData);
+  if (justPressedKeys.KeyX) {
+    generateLayer(gameData.blocks, 3);
   }
+  
+  justPressedKeys = Object.create(null);
 }
 
 function mouse(dt: number, gameData: GameData) {
