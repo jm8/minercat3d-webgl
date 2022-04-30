@@ -8,6 +8,7 @@ window.onkeyup = e => pressedKeys[e.code] = false;
 // mouseDelta is reset every update
 let mouseDelta = vec2.create();
 window.addEventListener('mousemove', e => {
+  if (!document.pointerLockElement) return;
   mouseDelta[0] += e.movementX;
   mouseDelta[1] += e.movementY;
 });
@@ -15,6 +16,9 @@ window.addEventListener('mousemove', e => {
 export function update(gameData: GameData, dt: number) {
   keyboard(dt, gameData);
   mouse(dt, gameData);
+  if (pressedKeys.KeyX) {
+    console.log(gameData);
+  }
 }
 
 function mouse(dt: number, gameData: GameData) {

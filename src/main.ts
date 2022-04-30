@@ -23,14 +23,12 @@ type ProgramInfo = {
 };
 
 let gameData = {
-  cameraPos: vec3.fromValues(0, 0, 3),
-  cameraFront: vec3.fromValues(1, 0, -1),
+  cameraPos: vec3.fromValues(9.383692741394043, 11.606156349182129, 7.4038004875183105),
+  cameraFront: vec3.fromValues(0.6053189635276794, -0.7092403173446655, -0.3613407611846924),
   cameraUp: vec3.fromValues(0, 1, 0),
   
-  yaw: 0,
-  pitch: 0,
-  
-  isPointerLocked: false,
+  yaw: -89.19999921321869,
+  pitch: -63.00000084936619,
 };
 
 export type GameData = typeof gameData;
@@ -62,7 +60,21 @@ function main() {
       
       vec3 blockPosition = vec3(x, y, z);
       gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(blockPosition, 0.0));
-      vTextureCoord = (aTextureCoord + vec2(gl_InstanceID % 12, 0.0)) / vec2(42.0, 1.0);
+  
+      int blockId = gl_InstanceID % 41;
+      int textureNum;
+      if (blockId == 0) { // grass
+        if (gl_VertexID >= 8 && gl_VertexID < 12) {
+          // top
+          textureNum = 0;
+        } else {
+          textureNum = 1;
+        }
+      } else {
+        textureNum = blockId+1;
+      }
+  
+      vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 1.0);
     }
   `;
 
@@ -369,7 +381,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     const offset = 0;
     const vertexCount = 36;
     const type = gl.UNSIGNED_SHORT;
-    const instanceCount = 1000;
+    const instanceCount = 24 * 24 * 24;
 
     gl.drawElementsInstanced(gl.TRIANGLES, vertexCount, type, offset, instanceCount)
   }
