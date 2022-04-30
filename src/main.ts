@@ -48,6 +48,7 @@ function main() {
     in vec2 aTextureCoord;
   
     out highp vec2 vTextureCoord;
+    out float isAir;
   
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
@@ -63,7 +64,11 @@ function main() {
   
       int blockId = gl_InstanceID % 41;
       int textureNum;
-      if (blockId == 0) { // grass
+      isAir = 0.0;
+  
+      if (blockId == 0) { // air
+        isAir = 1.0;
+      } else if (blockId == 1) { // grass
         if (gl_VertexID >= 8 && gl_VertexID < 12) {
           // top
           textureNum = 0;
@@ -71,7 +76,7 @@ function main() {
           textureNum = 1;
         }
       } else {
-        textureNum = blockId+1;
+        textureNum = blockId + 0;
       }
   
       vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 1.0);
@@ -83,10 +88,12 @@ function main() {
     precision lowp sampler3D;    out vec4 fragColor;
   
     in highp vec2 vTextureCoord;
+    in float isAir;
 
     uniform sampler2D uSampler;
     
     void main() {
+      if (isAir > 0.5) { discard; }
       fragColor = texture(uSampler, vTextureCoord);
       // fragColor = vec4(vTextureCoord * vec2(42.0, 1.0), 0.0, 1.0);
     }
@@ -381,7 +388,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     const offset = 0;
     const vertexCount = 36;
     const type = gl.UNSIGNED_SHORT;
-    const instanceCount = 24 * 24 * 24;
+    const instanceCount = 24 * 24 * 1000;
 
     gl.drawElementsInstanced(gl.TRIANGLES, vertexCount, type, offset, instanceCount)
   }

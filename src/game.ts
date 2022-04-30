@@ -22,9 +22,12 @@ export function update(gameData: GameData, dt: number) {
 }
 
 function mouse(dt: number, gameData: GameData) {
-  if (mouseDelta[0] == 0 && mouseDelta[1] == 0) {
-    return;
-  }
+  let keyboardSpeed = 6;
+  if (pressedKeys.ArrowRight) mouseDelta[0] += keyboardSpeed;
+  if (pressedKeys.ArrowLeft) mouseDelta[0] -= keyboardSpeed;
+  if (pressedKeys.ArrowUp) mouseDelta[1] -= keyboardSpeed;
+  if (pressedKeys.ArrowDown) mouseDelta[1] += keyboardSpeed;
+
   
   const sensitivity = 0.2;
   vec2.scale(mouseDelta, mouseDelta, sensitivity);
