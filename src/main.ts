@@ -370,7 +370,15 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
 }
 
 function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInfo: ProgramInfo, buffers: Buffers) {
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  const skyColor = vec3.fromValues(.40, 1, .996);
+  const caveColor = vec3.fromValues(0, .192, .188);
+  
+  const mix = Math.max(0, Math.min(1, -gameData.cameraPos[1] / 10));
+  const color = vec3.create();
+  vec3.scale(color, skyColor, 1-mix);
+  vec3.scaleAndAdd(color, color, caveColor, mix);
+  
+  gl.clearColor(color[0], color[1], color[2], 1.0);
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
