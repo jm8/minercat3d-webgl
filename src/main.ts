@@ -1,7 +1,7 @@
 import './style.css'
 import { mat4, vec3 } from 'gl-matrix';
 import { update } from './game';
-import { generateLayer } from './worldgen';
+import { generate } from './worldgen';
 
 export const WORLD_SIZE = 24;
 export const WORLD_DEPTH = 8250;
@@ -33,9 +33,7 @@ export class Blocks {
 
   constructor() {
     this.array = new Uint8Array(LAYER_SIZE * WORLD_DEPTH)
-    for (let i = 0; i < WORLD_DEPTH; i++) {
-      generateLayer(this, i);
-    }
+    generate(this);
   }
 
   gl: WebGL2RenderingContext | null = null
