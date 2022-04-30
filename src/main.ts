@@ -47,12 +47,22 @@ export class Blocks {
     if (y < 0 || y >= WORLD_DEPTH) return 0;
     return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)]
   }
+  
+  setBlock([x, y, z]: vec3, block: number) {
+    if (x < 0 || x >= WORLD_SIZE) return;
+    if (z < 0 || z >= WORLD_SIZE) return;
+    if (y < 0 || y >= WORLD_DEPTH) return;
+    const i = x + WORLD_SIZE * (z + WORLD_SIZE * y);
+    this.array[i] = block;
+    this.gl?.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer)
+    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i, this.array, i, 1);
+   }
 
   sendLayer(y: number) {
     if (!this.gl || !this.buffer) return;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
     this.gl.bufferSubData(this.gl.ARRAY_BUFFER, y * LAYER_SIZE, this.array, y * LAYER_SIZE, LAYER_SIZE)
-  }
+  } 
 }
 
 let gameData: GameData = {

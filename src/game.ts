@@ -9,6 +9,11 @@ window.onkeydown = e => {
 }
 window.onkeyup = e => pressedKeys[e.code] = false;
 
+let justPressedMouseButtons = Object.create(null);
+window.onmousedown = e => {
+  justPressedMouseButtons[e.button] = true;
+}
+
 // mouseDelta is reset every update
 let mouseDelta = vec2.create();
 window.addEventListener('mousemove', e => {
@@ -22,8 +27,13 @@ export function update(gameData: GameData, dt: number) {
   keyboard(dt, gameData);
 
   gameData.highlighted = raycast(gameData);
+  
+  if (justPressedMouseButtons[0] && gameData.highlighted) {
+    gameData.blocks.setBlock(gameData.highlighted, 0)
+  }
 
   justPressedKeys = Object.create(null);
+  justPressedMouseButtons = Object.create(null);
 }
 
 function raycast(gameData: GameData) {
@@ -38,7 +48,6 @@ function raycast(gameData: GameData) {
     curr[2] *= -1;
     vec3.floor(curr, curr);
     if (gameData.blocks.getBlock(curr)) {
-      console.log(curr);
       return curr;
     }
   }
