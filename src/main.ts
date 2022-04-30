@@ -1,9 +1,10 @@
 import './style.css'
 import { mat4, vec3 } from 'gl-matrix';
 import { update } from './game';
+import { generateLayer } from './worldgen';
 
 export const WORLD_SIZE = 24;
-export const WORLD_DEPTH = 24;
+export const WORLD_DEPTH = 8250;
 export const LAYER_SIZE = WORLD_SIZE * WORLD_SIZE;
 
 function error(message: string): never {
@@ -22,28 +23,31 @@ type ProgramInfo = {
     projectionMatrix: WebGLUniformLocation,
     modelViewMatrix: WebGLUniformLocation,
     sampler: WebGLUniformLocation,
+    layerStart: WebGLUniformLocation,
   }
 };
 
 export class Blocks {
   array: Uint8Array
-  
+
   constructor() {
-    this.array = new Uint8Array(LAYER_SIZE * WORLD_DEPTH).map((_, i) => Math.floor(i/2) % 41)
-    console.log(this.array)
+    this.array = new Uint8Array(LAYER_SIZE * WORLD_DEPTH)
+    for (let i = 0; i < WORLD_DEPTH; i++) {
+      generateLayer(this, i);
+    }
   }
-  
+
   gl: WebGL2RenderingContext | null = null
   buffer: WebGLBuffer | null = null
 
   getBlock(x: number, y: number, z: number): number {
-    return this.array[x + WORLD_SIZE*(z + WORLD_SIZE*y)]
+    return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)]
   }
 
   sendLayer(y: number) {
     if (!this.gl || !this.buffer) return;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
-    this.gl.bufferSubData(this.gl.ARRAY_BUFFER, y*LAYER_SIZE, this.array, y*LAYER_SIZE, LAYER_SIZE)
+    this.gl.bufferSubData(this.gl.ARRAY_BUFFER, y * LAYER_SIZE, this.array, y * LAYER_SIZE, LAYER_SIZE)
   }
 }
 
@@ -51,10 +55,10 @@ let gameData = {
   cameraPos: vec3.fromValues(9.3, 11.6, 7.4),
   cameraFront: vec3.fromValues(-0.58, -0.80, -0.40),
   cameraUp: vec3.fromValues(0, 1, 0),
-  
+
   pitch: -59.4,
   yaw: -440.8,
-  
+
   blocks: new Blocks(),
 };
 
@@ -83,6 +87,7 @@ function main() {
   
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
+    uniform int layerStart;
     
     void main() {
       int x = gl_InstanceID % ${WORLD_SIZE};
@@ -90,7 +95,7 @@ function main() {
       int z = zy % ${WORLD_SIZE};
       int y = zy / ${WORLD_SIZE};
       
-      vec3 blockPosition = vec3(x, y, z);
+      vec3 blockPosition = vec3(x, y+layerStart, z);
       gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(blockPosition, 0.0));
   
       int blockId = gl_InstanceID % 41;
@@ -145,6 +150,7 @@ function main() {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix') ?? error("couldn't find uniform uProjectionMatrix"),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix') ?? error("couldn't find uniform uModelViewMatrix"),
       sampler: gl.getUniformLocation(shaderProgram, 'uSampler') ?? error("couldn't find uniform uSampler"),
+      layerStart: gl.getUniformLocation(shaderProgram, 'layerStart') ?? error("couldn't find uniform uSampler")
     }
   };
 
@@ -348,12 +354,12 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
   ];
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
-  
+
   const blocksBuffer = gl.createBuffer()!;
   gl.bindBuffer(gl.ARRAY_BUFFER, blocksBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, gameData.blocks.array, gl.DYNAMIC_DRAW);
 
-  gameData.blocks.buffer = blocksBuffer;  
+  gameData.blocks.buffer = blocksBuffer;
   gameData.blocks.gl = gl;
 
   return {
@@ -383,6 +389,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   const lookAtPos = vec3.create();
   vec3.add(lookAtPos, gameData.cameraPos, gameData.cameraFront);
   mat4.lookAt(modelViewMatrix, gameData.cameraPos, lookAtPos, gameData.cameraUp)
+
   {
     const numComponents = 3;
     const type = gl.FLOAT;
@@ -400,13 +407,19 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     );
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
+  
+  const playerLayer = -Math.floor(gameData.cameraPos[1]);
+  const viewDistance = 100;
+
+  const layerStart = Math.min(Math.max(0, playerLayer-viewDistance), WORLD_DEPTH-1);
+  const layerEnd = Math.max(0, Math.min(WORLD_DEPTH-1, playerLayer+viewDistance));
 
   gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
   gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
-  
+
   gl.bindBuffer(gl.ARRAY_BUFFER, gameData.blocks.buffer);
-  gl.vertexAttribPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_BYTE, false, 0, 0);
+  gl.vertexAttribPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_BYTE, false, 0, layerStart * LAYER_SIZE);
   gl.vertexAttribDivisor(programInfo.attribLocations.block, 1);
   gl.enableVertexAttribArray(programInfo.attribLocations.block);
 
@@ -425,6 +438,11 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     false,
     modelViewMatrix
   );
+  
+  gl.uniform1i(
+    programInfo.uniformLocations.layerStart,
+    layerStart,
+  );
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -434,7 +452,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     const offset = 0;
     const vertexCount = 36;
     const type = gl.UNSIGNED_SHORT;
-    const instanceCount = LAYER_SIZE * WORLD_DEPTH;
+    const instanceCount = LAYER_SIZE * (layerEnd - layerStart);
 
     gl.drawElementsInstanced(gl.TRIANGLES, vertexCount, type, offset, instanceCount)
   }
