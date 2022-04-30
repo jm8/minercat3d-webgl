@@ -135,6 +135,9 @@ function main() {
         if (gl_VertexID >= 8 && gl_VertexID < 12) {
           // top
           textureNum = 0;
+        } else if (gl_VertexID >= 12 && gl_VertexID < 16) {
+          // bottom
+          textureNum = 2;
         } else {
           textureNum = 1;
         }
