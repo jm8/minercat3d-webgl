@@ -24,6 +24,7 @@ type ProgramInfo = {
     modelViewMatrix: WebGLUniformLocation,
     sampler: WebGLUniformLocation,
     layerStart: WebGLUniformLocation,
+    highlighted: WebGLUniformLocation,
   }
 };
 
@@ -84,10 +85,12 @@ function main() {
   
     out highp vec2 vTextureCoord;
     out float isAir;
+    out float isHighlighted;
   
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
     uniform int layerStart;
+    uniform vec3 highlighted;
     
     void main() {
       int x = gl_InstanceID % ${WORLD_SIZE};
@@ -102,6 +105,7 @@ function main() {
       // don't unedrstand why this works
       blockId = int(iBlock);
       int textureNum;
+  
       isAir = 0.0;
   
       if (blockId == 0) { // air
@@ -117,6 +121,8 @@ function main() {
         textureNum = blockId + 0;
       }
   
+      isHighlighted = blockPosition == highlighted ? 1.0 : 0.0;
+  
       vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 1.0);
     }
   `;
@@ -127,12 +133,23 @@ function main() {
   
     in highp vec2 vTextureCoord;
     in float isAir;
+    in float isHighlighted;
 
     uniform sampler2D uSampler;
     
     void main() {
       if (isAir > 0.5) { discard; }
+      
       fragColor = texture(uSampler, vTextureCoord);
+ 
+      if (isHighlighted > 0.5) {
+        vec2 uv = fract(vTextureCoord * vec2(42.0, 1.0));
+        float pickerWidth =  1.0 / 16.0;
+        if (uv.x < pickerWidth || uv.x > 1. - pickerWidth || uv.y < pickerWidth || uv.y > 1. - pickerWidth) {
+          fragColor = vec4(1.0);
+        }
+      }
+      
       // fragColor = vec4(vTextureCoord * vec2(42.0, 1.0), 0.0, 1.0);
     }
   `;
@@ -150,7 +167,8 @@ function main() {
       projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix') ?? error("couldn't find uniform uProjectionMatrix"),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix') ?? error("couldn't find uniform uModelViewMatrix"),
       sampler: gl.getUniformLocation(shaderProgram, 'uSampler') ?? error("couldn't find uniform uSampler"),
-      layerStart: gl.getUniformLocation(shaderProgram, 'layerStart') ?? error("couldn't find uniform uSampler")
+      layerStart: gl.getUniformLocation(shaderProgram, 'layerStart') ?? error("couldn't find uniform layerStart"),
+      highlighted: gl.getUniformLocation(shaderProgram, 'highlighted') ?? error("couldn't find uniform highlighted"),
     }
   };
 
@@ -372,12 +390,12 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
 function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInfo: ProgramInfo, buffers: Buffers) {
   const skyColor = vec3.fromValues(.40, 1, .996);
   const caveColor = vec3.fromValues(0, .192, .188);
-  
+
   const mix = Math.max(0, Math.min(1, -gameData.cameraPos[1] / 10));
   const color = vec3.create();
-  vec3.scale(color, skyColor, 1-mix);
+  vec3.scale(color, skyColor, 1 - mix);
   vec3.scaleAndAdd(color, color, caveColor, mix);
-  
+
   gl.clearColor(color[0], color[1], color[2], 1.0);
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
@@ -415,12 +433,12 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     );
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
-  
+
   const playerLayer = -Math.floor(gameData.cameraPos[1]);
   const viewDistance = 100;
 
-  const layerStart = Math.min(Math.max(0, playerLayer-viewDistance), WORLD_DEPTH-1);
-  const layerEnd = Math.max(0, Math.min(WORLD_DEPTH-1, playerLayer+viewDistance));
+  const layerStart = Math.min(Math.max(0, playerLayer - viewDistance), WORLD_DEPTH - 1);
+  const layerEnd = Math.max(0, Math.min(WORLD_DEPTH - 1, playerLayer + viewDistance));
 
   gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
   gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
@@ -446,11 +464,16 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     false,
     modelViewMatrix
   );
-  
+
   gl.uniform1i(
     programInfo.uniformLocations.layerStart,
     layerStart,
   );
+  
+  gl.uniform3fv(
+    programInfo.uniformLocations.highlighted,
+    [0, 1, 0],
+  )
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, texture);
