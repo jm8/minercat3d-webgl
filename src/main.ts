@@ -48,9 +48,9 @@ export class Blocks {
 }
 
 let gameData = {
-  cameraPos: [9.3, 11.6, 7.4],
-  cameraFront: [-0.58, -0.80, -0.40],
-  cameraUp: [0, 1, 0],
+  cameraPos: vec3.fromValues(9.3, 11.6, 7.4),
+  cameraFront: vec3.fromValues(-0.58, -0.80, -0.40),
+  cameraUp: vec3.fromValues(0, 1, 0),
   
   pitch: -59.4,
   yaw: -440.8,
