@@ -1,6 +1,5 @@
 import { GameData } from "./main"
 import { vec2, vec3 } from "gl-matrix"
-import { generateLayer } from "./worldgen";
 
 let pressedKeys = Object.create(null);
 let justPressedKeys = Object.create(null);
@@ -20,8 +19,32 @@ window.addEventListener('mousemove', e => {
 
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
-  keyboard(dt, gameData);  
+  keyboard(dt, gameData);
+
+  gameData.highlighted = raycast(gameData);
+
   justPressedKeys = Object.create(null);
+}
+
+function raycast(gameData: GameData) {
+  const highlightDist = 100;
+  
+  const curr = vec3.create();
+
+  for (let i = 0; i < highlightDist; i += 0.5) {
+    vec3.scaleAndAdd(curr, gameData.cameraPos, gameData.cameraFront, i);
+    curr[0] *= -1;
+    curr[1] *= -1;
+    curr[2] *= -1;
+    vec3.floor(curr, curr);
+    if (gameData.blocks.getBlock(curr)) {
+      console.log(curr);
+      return curr;
+    }
+  }
+
+  return null;
+
 }
 
 function mouse(dt: number, gameData: GameData) {
@@ -31,32 +54,32 @@ function mouse(dt: number, gameData: GameData) {
   if (pressedKeys.ArrowUp) mouseDelta[1] -= keyboardSpeed;
   if (pressedKeys.ArrowDown) mouseDelta[1] += keyboardSpeed;
 
-  
+
   const sensitivity = 0.15;
   vec2.scale(mouseDelta, mouseDelta, sensitivity);
-  
+
   gameData.yaw += mouseDelta[0];
-  gameData.pitch -= mouseDelta[1];  
-  
+  gameData.pitch -= mouseDelta[1];
+
   if (gameData.pitch > 89.0) {
     gameData.pitch = 89.0;
   }
   if (gameData.pitch < -89.0) {
     gameData.pitch = -89.0
   }
-  
+
   updateCameraFront(gameData);
-  
+
   vec2.zero(mouseDelta);
 }
 
 function updateCameraFront(gameData: GameData) {
-    const direction = vec3.create();
-    const rad = (x: number) => x / 180 * Math.PI;
-    direction[0] = Math.cos(rad(gameData.yaw)) * Math.cos(rad(gameData.pitch));
-    direction[1] = Math.sin(rad(gameData.pitch));
-    direction[2] = Math.sin(rad(gameData.yaw)) * Math.cos(rad(gameData.pitch));
-    vec3.normalize(gameData.cameraFront, direction);
+  const direction = vec3.create();
+  const rad = (x: number) => x / 180 * Math.PI;
+  direction[0] = Math.cos(rad(gameData.yaw)) * Math.cos(rad(gameData.pitch));
+  direction[1] = Math.sin(rad(gameData.pitch));
+  direction[2] = Math.sin(rad(gameData.yaw)) * Math.cos(rad(gameData.pitch));
+  vec3.normalize(gameData.cameraFront, direction);
 }
 
 function keyboard(dt: number, gameData: GameData) {

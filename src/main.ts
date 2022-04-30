@@ -41,7 +41,10 @@ export class Blocks {
   gl: WebGL2RenderingContext | null = null
   buffer: WebGLBuffer | null = null
 
-  getBlock(x: number, y: number, z: number): number {
+  getBlock([x, y, z]: vec3): number {
+    if (x < 0 || x >= WORLD_SIZE) return 0;
+    if (z < 0 || z >= WORLD_SIZE) return 0;
+    if (y < 0 || y >= WORLD_DEPTH) return 0;
     return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)]
   }
 
@@ -52,18 +55,28 @@ export class Blocks {
   }
 }
 
-let gameData = {
+let gameData: GameData = {
   cameraPos: vec3.fromValues(9.3, 11.6, 7.4),
   cameraFront: vec3.fromValues(-0.58, -0.80, -0.40),
   cameraUp: vec3.fromValues(0, 1, 0),
 
   pitch: -59.4,
   yaw: -440.8,
+  
+  highlighted: null,
 
   blocks: new Blocks(),
 };
 
-export type GameData = typeof gameData;
+export type GameData = {
+  cameraPos: vec3,
+  cameraFront: vec3,
+  cameraUp: vec3,
+  pitch: number,
+  yaw: number,
+  highlighted: vec3 | null,
+  blocks: Blocks
+};
 
 function main() {
   const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!;
@@ -472,7 +485,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   
   gl.uniform3fv(
     programInfo.uniformLocations.highlighted,
-    [0, 1, 0],
+    gameData.highlighted ?? [0, 0, 0],
   )
 
   gl.activeTexture(gl.TEXTURE0);
