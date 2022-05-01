@@ -22,19 +22,30 @@ window.addEventListener('mousemove', e => {
   mouseDelta[1] += e.movementY;
 });
 
+let t = 0;
+const ro = vec3.create();
+const rd = vec3.create();
+const rc = vec3.create();
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
   keyboard(dt, gameData);
 
-  gameData.highlighted = raycast(gameData);
+  t += dt;
+  // gameData.highlighted = raycast(gameData);
   
   if (justPressedMouseButtons[0] && gameData.highlighted) {
     gameData.blocks.setBlock(gameData.highlighted, 0)
   }
   
+  
   if (justPressedKeys.KeyX) {
-    getCameraCenter(gameData);
+    vec3.copy(ro, gameData.cameraPos);
+    vec3.copy(rd, gameData.cameraFront);
+    console.log("ro", ro);
+    console.log("rd", rd);
   }
+  vec3.scaleAndAdd(rc, ro, rd, 5*(t - Math.floor(t))); 
+  gameData.highlighted = rc;
 
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);

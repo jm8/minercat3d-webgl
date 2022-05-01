@@ -1,4 +1,3 @@
-import './style.css'
 import { mat4, vec3, vec4 } from 'gl-matrix';
 import { update } from './game';
 import { generate } from './worldgen';
@@ -55,12 +54,6 @@ export class Blocks {
     this.gl?.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer)
     this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i, this.array, i, 1);
    }
-
-  sendLayer(y: number) {
-    if (!this.gl || !this.buffer) return;
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
-    this.gl.bufferSubData(this.gl.ARRAY_BUFFER, y * LAYER_SIZE, this.array, y * LAYER_SIZE, LAYER_SIZE)
-  } 
 }
 
 let gameData: GameData = {
@@ -119,14 +112,21 @@ function main() {
       int z = zy % ${WORLD_SIZE};
       int y = zy / ${WORLD_SIZE};
       
-      vec3 blockPosition = vec3(x, y+layerStart, z);
-      gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition - vec4(blockPosition, 0.0));
+      vec3 blockPosition = vec3(x, -y-layerStart, z);
   
-      int blockId = gl_InstanceID % 41;
+  
+  
       // don't unedrstand why this works
-      blockId = int(iBlock);
+      int blockId = int(iBlock);
       int textureNum;
   
+      if (gl_InstanceID == 0) {
+        blockPosition = highlighted;
+        blockId = 40;
+      }
+
+      gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition + vec4(blockPosition, 0.0));
+
       isAir = 0.0;
   
       if (blockId == 0) { // air
