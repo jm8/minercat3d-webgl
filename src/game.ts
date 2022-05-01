@@ -22,42 +22,22 @@ window.addEventListener('mousemove', e => {
   mouseDelta[1] += e.movementY;
 });
 
-let t = 0;
-const ro = vec3.create();
-const rd = vec3.create();
-const rc = vec3.create();
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
   keyboard(dt, gameData);
 
-  t += dt;
-  // gameData.highlighted = raycast(gameData);
   
   if (justPressedMouseButtons[0] && gameData.highlighted) {
     gameData.blocks.setBlock(gameData.highlighted, 0)
   }
   
+  gameData.highlighted = raycast(gameData);
   
-  if (justPressedKeys.KeyX) {
-    vec3.copy(ro, gameData.cameraPos);
-    vec3.copy(rd, gameData.cameraFront);
-    console.log("ro", ro);
-    console.log("rd", rd);
-  }
-  vec3.scaleAndAdd(rc, ro, rd, 5*(t - Math.floor(t))); 
-  gameData.highlighted = rc;
-
+  
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
 }
 
-function getCameraCenter(gameData: GameData) {
-  console.log("pos:", gameData.cameraPos)
-  console.log("front: ", gameData.cameraFront)
-  const right = vec3.create();
-  vec3.cross(right, gameData.cameraFront, gameData.cameraUp);
-  console.log("rightl: ", right)
-}
 
 function raycast(gameData: GameData) {
   const highlightDist = 100;
@@ -66,10 +46,8 @@ function raycast(gameData: GameData) {
 
   for (let i = 0; i < highlightDist; i += 0.5) {
     vec3.scaleAndAdd(curr, gameData.cameraPos, gameData.cameraFront, i);
-    curr[0] *= -1;
-    curr[1] *= -1;
-    curr[2] *= -1;
     vec3.floor(curr, curr);
+    curr[1] *= -1;
     if (gameData.blocks.getBlock(curr)) {
       return curr;
     }

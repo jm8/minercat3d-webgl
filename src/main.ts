@@ -104,7 +104,7 @@ function main() {
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
     uniform int layerStart;
-    uniform vec3 highlighted;
+    uniform vec3 highlighted; // index in array of highlighted block
     
     void main() {
       int x = gl_InstanceID % ${WORLD_SIZE};
@@ -113,21 +113,23 @@ function main() {
       int y = zy / ${WORLD_SIZE};
       
       vec3 blockPosition = vec3(x, -y-layerStart, z);
-  
+      vec3 highlightedPosition = vec3(highlighted.x, -highlighted.y, highlighted.z);
   
   
       // don't unedrstand why this works
       int blockId = int(iBlock);
       int textureNum;
   
+
+      isAir = 0.0;
+  
+
       if (gl_InstanceID == 0) {
-        blockPosition = highlighted;
+        blockPosition = highlightedPosition;
         blockId = 40;
       }
 
       gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition + vec4(blockPosition, 0.0));
-
-      isAir = 0.0;
   
       if (blockId == 0) { // air
         isAir = 1.0;
@@ -145,7 +147,7 @@ function main() {
         textureNum = blockId + 0;
       }
   
-      isHighlighted = blockPosition == highlighted ? 1.0 : 0.0;
+      isHighlighted = blockPosition == highlightedPosition ? 1.0 : 0.0;
   
       vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 1.0);
     }
