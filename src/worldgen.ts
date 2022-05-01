@@ -1,8 +1,9 @@
+import SimplexNoise from "simplex-noise"
 import { LAYER_SIZE, Blocks, WORLD_DEPTH, WORLD_SIZE } from "./main"
 
 type WorldGen = WorldGenSection[]
 
-type WorldGenSection = { y: number, tries: Try[], cavechance: number } | ({ y: number, tries: Try[] })
+type WorldGenSection = ({ y: number, tries: Try[] })
 
 type Try = { chance: number, do: Do } | { do: Do }
 
@@ -15,16 +16,6 @@ const worldgen: WorldGen = [
   { y: 6, tries: [{ do: { type: "firstlayer" } }] },
   { y: 7, tries: [{ do: 2 }] },
   {
-    y: 10,
-    tries: [
-      { chance: 10, do: 4 },
-      { chance: 12, do: 5 },
-      { chance: 14, do: 6 },
-      { chance: 16, do: 7 },
-      { do: 3 },
-    ],
-  },
-  {
     y: 24,
     tries: [
       { chance: 10, do: 4 },
@@ -33,7 +24,6 @@ const worldgen: WorldGen = [
       { chance: 16, do: 7 },
       { do: 3 }
     ],
-    cavechance: 63,
   }
 ]
 
@@ -51,6 +41,13 @@ export function generate(blocks: Blocks) {
           if ("chance" in tri) {
             if (Math.random() >= 1 / tri.chance) continue;
           }
+          
+          if (isCave(x, y, z)) {
+            // blocks.setBlock([x, y, z], 3)
+            continue;
+          } else {
+            // continue;
+          }
 
           if (typeof tri.do == "number") {
             blocks.setBlock([x, y, z], tri.do);
@@ -67,32 +64,12 @@ export function generate(blocks: Blocks) {
         }
       }
     }
-    const thesection = worldgen[section];
-    if ("cavechance" in thesection) {
-      for (let x = 0; x < WORLD_SIZE; x++) {
-        for (let z = 0; z < WORLD_SIZE; z++) {
-          if (Math.random() < 1 / thesection.cavechance) {
-            cave(blocks, x, y, z);
-          }
-        }
-      }
-    }
   }
 }
 
-
-function cave(blocks: Blocks, x: number, y: number, z: number) {
-  const width = randint(3, 7);
-  const depth = randint(3, 7);
-
-  console.log(width, depth);
-
-  for (let dx = 0; dx < width; dx++) {
-    for (let dz = 0; dz < depth; dz++) {
-      for (let dy = 0; dy < 3; dy++) {
-        blocks.setBlock([x + dz, y - dy, z + dz], 0);
-      }
-    }
-  }
-
+let simplex = new SimplexNoise();
+function isCave(x: number, y: number, z: number): boolean {
+  let fade = Math.max(0, Math.min(1, (y-5)/5));
+  
+  return simplex.noise3D(x * .08, y * .08, z * .08)*fade > 0.8;
 }
