@@ -96,7 +96,7 @@ let speed = 8;
 document.onwheel = e => {
   if (!document.pointerLockElement) return;
   e.preventDefault();
-  speed += e.deltaY * -.2;
+  speed += e.deltaY * -.02;
   speed = Math.max(1, Math.min(1000, speed));
 }
 
