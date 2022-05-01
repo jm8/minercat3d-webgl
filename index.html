@@ -5,9 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Minercat3D</title>
+    <link rel="stylesheet" href="/src/main.css">
   </head>
   <body>
-    <canvas id="canvas" width="640" height="480"></canvas>
+    <div id="game">
+      <canvas width=640 height=480 id="canvas"></canvas>
+      <div id="crosshair"></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

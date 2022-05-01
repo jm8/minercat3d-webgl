@@ -31,9 +31,21 @@ export function update(gameData: GameData, dt: number) {
   if (justPressedMouseButtons[0] && gameData.highlighted) {
     gameData.blocks.setBlock(gameData.highlighted, 0)
   }
+  
+  if (justPressedKeys.KeyX) {
+    getCameraCenter(gameData);
+  }
 
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
+}
+
+function getCameraCenter(gameData: GameData) {
+  console.log("pos:", gameData.cameraPos)
+  console.log("front: ", gameData.cameraFront)
+  const right = vec3.create();
+  vec3.cross(right, gameData.cameraFront, gameData.cameraUp);
+  console.log("rightl: ", right)
 }
 
 function raycast(gameData: GameData) {
