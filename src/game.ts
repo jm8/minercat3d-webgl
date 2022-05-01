@@ -22,9 +22,12 @@ window.addEventListener('mousemove', e => {
   mouseDelta[1] += e.movementY;
 });
 
+export const playerHeight = 3.5;
+
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
   keyboard(dt, gameData);
+  doCollision(gameData);
 
   
   if (justPressedMouseButtons[0] && gameData.highlighted) {
@@ -45,7 +48,7 @@ function raycast(gameData: GameData) {
   const curr = vec3.create();
 
   for (let i = 0; i < highlightDist; i += 0.5) {
-    vec3.scaleAndAdd(curr, gameData.cameraPos, gameData.cameraFront, i);
+    vec3.scaleAndAdd(curr, gameData.position, gameData.facing, i);
     vec3.floor(curr, curr);
     curr[1] *= -1;
     if (gameData.blocks.getBlock(curr)) {
@@ -89,7 +92,7 @@ function updateCameraFront(gameData: GameData) {
   direction[0] = Math.cos(rad(gameData.yaw)) * Math.cos(rad(gameData.pitch));
   direction[1] = Math.sin(rad(gameData.pitch));
   direction[2] = Math.sin(rad(gameData.yaw)) * Math.cos(rad(gameData.pitch));
-  vec3.normalize(gameData.cameraFront, direction);
+  vec3.normalize(gameData.facing, direction);
 }
 
 let speed = 8;
@@ -101,28 +104,32 @@ document.onwheel = e => {
 }
 
 function keyboard(dt: number, gameData: GameData) {
+  const forward = vec3.copy(vec3.create(), gameData.facing);
+  forward[1] = 0;
+  vec3.normalize(forward, forward);
+  
+  const right = vec3.cross(vec3.create(), forward, [0, 1, 0]);
+
   if (pressedKeys.KeyW) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraFront, speed*dt);
+    vec3.scaleAndAdd(gameData.position, gameData.position, forward, speed*dt);
   }
   if (pressedKeys.KeyS) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraFront, -speed*dt);
+    vec3.scaleAndAdd(gameData.position, gameData.position, forward, -speed*dt);
   }
   if (pressedKeys.Space) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, speed*dt);
+    // vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, speed*dt);
   }
   if (pressedKeys.ShiftLeft) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, -speed*dt);
+    // vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, -speed*dt);
   }
   if (pressedKeys.KeyA) {
-    const right = vec3.create();
-    vec3.cross(right, gameData.cameraFront, gameData.cameraUp);
-    vec3.normalize(right, right);
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, right, -speed*dt);
+    vec3.scaleAndAdd(gameData.position, gameData.position, right, -speed*dt);
   }
   if (pressedKeys.KeyD) {
-    const right = vec3.create();
-    vec3.cross(right, gameData.cameraFront, gameData.cameraUp);
-    vec3.normalize(right, right);
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, right, speed*dt);
+    vec3.scaleAndAdd(gameData.position, gameData.position, right, speed*dt);
   }
+}
+
+function doCollision(gameData: GameData) {
+  if (gameData.position[1] < -6) gameData.position[1] = -6;
 }

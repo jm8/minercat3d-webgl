@@ -1,5 +1,5 @@
 import { mat4, vec3, vec4 } from 'gl-matrix';
-import { update } from './game';
+import { playerHeight, update } from './game';
 import { generate } from './worldgen';
 
 export const WORLD_SIZE = 24;
@@ -57,26 +57,31 @@ export class Blocks {
 }
 
 let gameData: GameData = {
-  cameraPos: vec3.fromValues(9.3, 11.6, 7.4),
-  cameraFront: vec3.fromValues(-0.58, -0.80, -0.40),
+  position: vec3.fromValues(WORLD_SIZE / 2, -6 + playerHeight, WORLD_SIZE/2),
+  facing: vec3.fromValues(0, 0, 0),
   cameraUp: vec3.fromValues(0, 1, 0),
 
-  pitch: -59.4,
-  yaw: -440.8,
+  pitch: 0,
+  yaw: 0,
   
   highlighted: null,
 
   blocks: new Blocks(),
+  
+  velocity: vec3.create(),
 };
 
 export type GameData = {
-  cameraPos: vec3,
-  cameraFront: vec3,
+  position: vec3,
+  facing: vec3,
   cameraUp: vec3,
+
   pitch: number,
   yaw: number,
   highlighted: vec3 | null,
   blocks: Blocks
+  
+  velocity: vec3
 };
 
 function main() {
@@ -417,7 +422,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   const skyColor = vec3.fromValues(.40, 1, .996);
   const caveColor = vec3.fromValues(0, .192, .188);
 
-  const mix = Math.max(0, Math.min(1, -gameData.cameraPos[1] / 10));
+  const mix = Math.max(0, Math.min(1, -gameData.position[1] / 10));
   const color = vec3.create();
   vec3.scale(color, skyColor, 1 - mix);
   vec3.scaleAndAdd(color, color, caveColor, mix);
@@ -439,8 +444,8 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
 
   const modelViewMatrix = mat4.create();
   const lookAtPos = vec3.create();
-  vec3.add(lookAtPos, gameData.cameraPos, gameData.cameraFront);
-  mat4.lookAt(modelViewMatrix, gameData.cameraPos, lookAtPos, gameData.cameraUp)
+  vec3.add(lookAtPos, gameData.position, gameData.facing);
+  mat4.lookAt(modelViewMatrix, gameData.position, lookAtPos, gameData.cameraUp)
 
   {
     const numComponents = 3;
@@ -460,7 +465,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
 
-  const playerLayer = -Math.floor(gameData.cameraPos[1]);
+  const playerLayer = -Math.floor(gameData.position[1]);
   const viewDistance = 100;
 
   const layerStart = Math.min(Math.max(0, playerLayer - viewDistance), WORLD_DEPTH - 1);
