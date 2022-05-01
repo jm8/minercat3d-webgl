@@ -26,7 +26,10 @@ export const playerHeight = 3.5;
 
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
+  gameData.velocity[1] -= 16*dt;
   keyboard(dt, gameData);
+   
+  vec3.scaleAndAdd(gameData.position, gameData.position, gameData.velocity, dt);
   doCollision(gameData);
 
   
@@ -95,15 +98,8 @@ function updateCameraFront(gameData: GameData) {
   vec3.normalize(gameData.facing, direction);
 }
 
-let speed = 8;
-document.onwheel = e => {
-  if (!document.pointerLockElement) return;
-  e.preventDefault();
-  speed += e.deltaY * -.02;
-  speed = Math.max(1, Math.min(1000, speed));
-}
-
 function keyboard(dt: number, gameData: GameData) {
+  const speed = 8;
   const forward = vec3.copy(vec3.create(), gameData.facing);
   forward[1] = 0;
   vec3.normalize(forward, forward);
@@ -116,7 +112,8 @@ function keyboard(dt: number, gameData: GameData) {
   if (pressedKeys.KeyS) {
     vec3.scaleAndAdd(gameData.position, gameData.position, forward, -speed*dt);
   }
-  if (pressedKeys.Space) {
+  if (pressedKeys.Space && gameData.isOnGround) {
+    gameData.velocity[1] = 10;
     // vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, speed*dt);
   }
   if (pressedKeys.ShiftLeft) {
@@ -131,5 +128,10 @@ function keyboard(dt: number, gameData: GameData) {
 }
 
 function doCollision(gameData: GameData) {
-  if (gameData.position[1] < -6) gameData.position[1] = -6;
+  if (gameData.position[1] <= playerHeight -6) {
+    gameData.position[1] = -6 + playerHeight;
+    gameData.isOnGround = true;
+  } else {
+    gameData.isOnGround = false;
+  }
 }

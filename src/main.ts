@@ -69,6 +69,8 @@ let gameData: GameData = {
   blocks: new Blocks(),
   
   velocity: vec3.create(),
+  
+  isOnGround: false,
 };
 
 export type GameData = {
@@ -81,7 +83,9 @@ export type GameData = {
   highlighted: vec3 | null,
   blocks: Blocks
   
-  velocity: vec3
+  velocity: vec3,
+  
+  isOnGround: boolean,
 };
 
 function main() {
