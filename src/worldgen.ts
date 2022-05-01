@@ -24,11 +24,85 @@ const worldgen: WorldGen = [
       { chance: 16, do: 7 },
       { do: 3 }
     ],
-  }
-]
+  },
+  {
+    y: 60,
+    tries: [
+      { chance: 10, do: 9 },
+      { chance: 12, do: 10 },
+      { chance: 14, do: 11 },
+      // lava 75
+      { do: 8 }
+    ]
+  },
+  {
+    y: 110,
+    tries: [
+      { chance: 10, do: 13 },
+      { chance: 12, do: 14 },
+      { chance: 14, do: 15 },
+      { do: 12 }
+    ]
+  },
+  {
+    y: 160,
+    tries: [
+      { chance: 10, do: 17 },
+      { chance: 12, do: 18 },
+      { chance: 14, do: 19 },
+      { do: 16 }
+      // lava 35
 
-// inclusive
-const randint = (a: number, b: number) => Math.floor(Math.random() * (b + 1 - a) + a)
+    ]
+  },
+  {
+    y: 225,
+    tries: [
+      {chance: 10, do: 21},
+      {chance: 12, do: 22},
+      {chance: 14, do: 23},
+      {do: 20},
+    ]
+  },
+  {
+    y: 300,
+    tries: [
+      {chance: 10, do: 25},
+      {chance: 12, do: 26},
+      {chance: 14, do: 27},
+      {do: 24},
+    ]
+  },
+  {
+    y: 375,
+    tries: [
+      {chance: 10, do: 29},
+      {chance: 12, do: 30},
+      {chance: 14, do: 31},
+      {do: 28},
+    ]
+  },
+  {
+    y: 500,
+    tries: [
+      {chance: 10, do: 33},
+      {chance: 12, do: 34},
+      {chance: 14, do: 35},
+      {do: 32},
+    ]
+  },
+  {
+    y: 8250,
+    tries: [
+      {chance: 10, do: 37},
+      {chance: 12, do: 38},
+      {chance: 14, do: 39},
+      {do: 36},
+      // lava 12
+      // cave 10
+    ],
+  },
+]
 
 export function generate(blocks: Blocks) {
   let section = 0;
@@ -41,7 +115,7 @@ export function generate(blocks: Blocks) {
           if ("chance" in tri) {
             if (Math.random() >= 1 / tri.chance) continue;
           }
-          
+
           if (isCave(x, y, z)) {
             // blocks.setBlock([x, y, z], 3)
             continue;
@@ -69,7 +143,7 @@ export function generate(blocks: Blocks) {
 
 let simplex = new SimplexNoise();
 function isCave(x: number, y: number, z: number): boolean {
-  let fade = Math.max(0, Math.min(1, (y-5)/5));
-  
-  return simplex.noise3D(x * .08, y * .08, z * .08)*fade > 0.8;
+  let fade = Math.max(0, Math.min(1, (y - 5) / 5));
+
+  return simplex.noise3D(x * .08, y * .08, z * .08) * fade > 0.8;
 }

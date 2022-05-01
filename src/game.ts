@@ -91,30 +91,37 @@ function updateCameraFront(gameData: GameData) {
   vec3.normalize(gameData.cameraFront, direction);
 }
 
+let speed = 8;
+document.onwheel = e => {
+  if (!document.pointerLockElement) return;
+  e.preventDefault();
+  speed += e.deltaY * -.2;
+  speed = Math.max(1, Math.min(1000, speed));
+}
+
 function keyboard(dt: number, gameData: GameData) {
-  const speed = 8 * dt;
   if (pressedKeys.KeyW) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraFront, speed);
+    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraFront, speed*dt);
   }
   if (pressedKeys.KeyS) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraFront, -speed);
+    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraFront, -speed*dt);
   }
   if (pressedKeys.Space) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, speed);
+    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, speed*dt);
   }
   if (pressedKeys.ShiftLeft) {
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, -speed);
+    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, -speed*dt);
   }
   if (pressedKeys.KeyA) {
     const right = vec3.create();
     vec3.cross(right, gameData.cameraFront, gameData.cameraUp);
     vec3.normalize(right, right);
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, right, -speed);
+    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, right, -speed*dt);
   }
   if (pressedKeys.KeyD) {
     const right = vec3.create();
     vec3.cross(right, gameData.cameraFront, gameData.cameraUp);
     vec3.normalize(right, right);
-    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, right, speed);
+    vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, right, speed*dt);
   }
 }
