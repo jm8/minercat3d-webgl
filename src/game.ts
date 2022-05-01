@@ -1,5 +1,6 @@
 import { GameData } from "./main"
 import { vec2, vec3 } from "gl-matrix"
+import { debug } from "./debug";
 
 let pressedKeys = Object.create(null);
 let justPressedKeys = Object.create(null);
@@ -22,15 +23,15 @@ window.addEventListener('mousemove', e => {
   mouseDelta[1] += e.movementY;
 });
 
-export const playerHeight = 3.5;
+export const eyeHeight = 3.5;
+export const foreheadHeight = 0;
 
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
   gameData.velocity[1] -= 16*dt;
   keyboard(dt, gameData);
    
-  vec3.scaleAndAdd(gameData.position, gameData.position, gameData.velocity, dt);
-  doCollision(gameData);
+  moveAndSlide(gameData, dt);
 
   
   if (justPressedMouseButtons[0] && gameData.highlighted) {
@@ -127,11 +128,52 @@ function keyboard(dt: number, gameData: GameData) {
   }
 }
 
-function doCollision(gameData: GameData) {
-  if (gameData.position[1] <= playerHeight -6) {
-    gameData.position[1] = -6 + playerHeight;
-    gameData.isOnGround = true;
-  } else {
+function toBlockCoords(result: vec3, position: vec3): vec3 {
+  vec3.copy(result, position);
+  result[1] *= -1;
+  vec3.floor(result, result);
+  return result;
+}
+
+function moveAndSlide(gameData: GameData, dt: number) {
+  const vdt = vec3.scale(vec3.create(), gameData.velocity, dt);
+  moveYDown(gameData, vdt[1]);
+  
+}
+
+function moveYDown(gameData: GameData, dy: numbe) {
+  const ySteps = 6; // should be >= terminal velocity
+  let pointOffset;
+  if (dy > 0) {
+    pointOffset = foreheadHeight;
     gameData.isOnGround = false;
+  } else {
+    pointOffset = -eyeHeight;
+  }
+  for (let i = 0; i < ySteps; i++) {
+    gameData.position[1] += dy / ySteps;
+    debug("position", gameData.position);
+
+    const point = vec3.copy(vec3.create(), gameData.position);
+    point[1] += pointOffset;
+    
+    const pointBlock = toBlockCoords(vec3.create(), point);
+    if (dy < 0) debug("feet block", pointBlock)
+
+    if (gameData.blocks.getBlock(pointBlock)) {
+      if (dy < 0) {
+        gameData.position[1] = -pointBlock[1] - pointOffset
+        gameData.isOnGround = true;
+      } else {
+        gameData.position[1] = -pointBlock[1] - pointOffset - 1;
+      }
+      gameData.velocity[1] = 0;
+      break;
+    } else {
+      if (dy < 0) {
+        gameData.isOnGround = false;
+      }
+    }
   }
 }
+

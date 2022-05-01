@@ -1,5 +1,5 @@
 import { mat4, vec3, vec4 } from 'gl-matrix';
-import { playerHeight, update } from './game';
+import { eyeHeight, update } from './game';
 import { generate } from './worldgen';
 
 export const WORLD_SIZE = 24;
@@ -57,7 +57,8 @@ export class Blocks {
 }
 
 let gameData: GameData = {
-  position: vec3.fromValues(WORLD_SIZE / 2, -6 + playerHeight, WORLD_SIZE/2),
+  position: vec3.fromValues(WORLD_SIZE / 2, 10 + eyeHeight, WORLD_SIZE/2),
+  // position: vec3.fromValues(WORLD_SIZE / 2, -6 + 4 + playerHeight, WORLD_SIZE/2),
   facing: vec3.fromValues(0, 0, 0),
   cameraUp: vec3.fromValues(0, 1, 0),
 

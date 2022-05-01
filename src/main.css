@@ -1,7 +1,7 @@
 #game {
   width: 640px;
   height: 480px;
-  position: absolute;
+  position: relative;
 }
 
 #canvas {
