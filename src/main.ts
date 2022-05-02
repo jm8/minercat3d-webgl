@@ -1,4 +1,5 @@
-import { mat4, vec3, vec4 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
+import { blockTypeHealth } from './content';
 import { eyeHeight, update } from './game';
 import { generate } from './worldgen';
 
@@ -106,6 +107,19 @@ export type GameData = {
   isOnGround: boolean,
 };
 
+function toGlslArray(array: number[], type: "uint"): string {
+  const suffix = type == "uint" ? "u" : "";
+  let result = type + "[](";
+  let sep = "";
+  for (const x of array) {
+    result += sep + x.toFixed() + suffix;
+    sep = ", ";
+  }
+  result += ")";
+  return result;
+}
+  
+
 function main() {
   const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!;
   canvas.addEventListener('click', () => canvas.requestPointerLock());
@@ -113,6 +127,8 @@ function main() {
   const gl = canvas.getContext('webgl2');
 
   if (!gl) error("Unable to initialize WebGL2");
+  
+  console.log(toGlslArray(blockTypeHealth, "uint"));
 
   const vsSource = `#version 300 es
 
@@ -124,6 +140,7 @@ function main() {
     in uint iBlock;
   
     out highp vec2 vTextureCoord;
+    out highp vec2 vBreakingCoord;
     out float isAir;
     out float isHighlighted;
   
@@ -131,8 +148,11 @@ function main() {
     uniform mat4 uProjectionMatrix;
     uniform int layerStart;
     uniform vec3 highlighted; // index in array of highlighted block
+  
     
     void main() {
+      const uint[] blockTypeHealth = ${toGlslArray(blockTypeHealth, "uint")};
+
       int x = gl_InstanceID % ${WORLD_SIZE};
       int zy = gl_InstanceID / ${WORLD_SIZE};
       int z = zy % ${WORLD_SIZE};
@@ -169,7 +189,11 @@ function main() {
   
       isHighlighted = blockPosition == highlightedPosition ? 1.0 : 0.0;
   
-      vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 1.0);
+      vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 2.0);
+      
+      float breakingProgress = 1.0 - (float(blockHealth) / float(blockTypeHealth[blockId]));
+      uint breakingNum = uint(breakingProgress * 11.0);
+      vBreakingCoord = (aTextureCoord + vec2(breakingNum, 1.0)) / vec2(42.0, 2.0);
     }
   `;
 
@@ -178,6 +202,7 @@ function main() {
     precision lowp sampler3D;    out vec4 fragColor;
   
     in highp vec2 vTextureCoord;
+    in highp vec2 vBreakingCoord;
     in float isAir;
     in float isHighlighted;
 
@@ -186,10 +211,15 @@ function main() {
     void main() {
       if (isAir > 0.5) { discard; }
       
-      fragColor = texture(uSampler, vTextureCoord);
+      if(texture(uSampler, vBreakingCoord).a != 0.0) {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      } else {
+        fragColor = texture(uSampler, vTextureCoord);
+      }
+      
  
       if (isHighlighted > 0.5) {
-        vec2 uv = fract(vTextureCoord * vec2(42.0, 1.0));
+        vec2 uv = fract(vTextureCoord * vec2(42.0, 2.0));
         float pickerWidth =  1.0 / 16.0;
         if (uv.x < pickerWidth || uv.x > 1. - pickerWidth || uv.y < pickerWidth || uv.y > 1. - pickerWidth) {
           fragColor = vec4(1.0);

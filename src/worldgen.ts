@@ -1,4 +1,5 @@
 import SimplexNoise from "simplex-noise"
+import { BEDROCK, blockTypeHealth } from "./content"
 import { LAYER_SIZE, Blocks, WORLD_DEPTH, WORLD_SIZE } from "./main"
 
 type WorldGen = WorldGenSection[]
@@ -107,6 +108,14 @@ const worldgen: WorldGen = [
 export function generate(blocks: Blocks) {
   makeBlocks(blocks);
   makeCaves(blocks);
+
+  for (let y = 0; y < WORLD_DEPTH; y++) {
+    for (let x = 0; x < WORLD_SIZE; x++) {
+      for (let z = 0; z < WORLD_SIZE; z++) {
+        blocks.setBlockHealth([x,y,z], blockTypeHealth[blocks.getBlock([x, y, z])])
+        }
+      }
+    }
 }
 
 function makeBlocks(blocks: Blocks) {
@@ -126,7 +135,7 @@ function makeBlocks(blocks: Blocks) {
           } else if (tri.do.type == "firstlayer") {
             const center = Math.floor(WORLD_SIZE / 2);
             if ((x == center || x == center - 1) && (z == center || z == center - 1)) {
-              blocks.setBlock([x, y, z], 41);
+              blocks.setBlock([x, y, z], BEDROCK);
             }
             else {
               blocks.setBlock([x, y, z], 1);
@@ -134,7 +143,6 @@ function makeBlocks(blocks: Blocks) {
           }
           break;
         }
-        blocks.setBlockHealth([x, y, z], Math.floor(Math.random() * 1024))
       }
     }
   }

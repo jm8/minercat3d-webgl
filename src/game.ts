@@ -1,6 +1,7 @@
 import { GameData } from "./main"
 import { vec2, vec3 } from "gl-matrix"
 import { debug } from "./debug";
+import { blockTypeHealth } from "./content";
 
 let pressedKeys = Object.create(null);
 let justPressedKeys = Object.create(null);
@@ -38,6 +39,7 @@ export function update(gameData: GameData, dt: number) {
       gameData.velocity[1] = -30;
     }
   }
+
   keyboard(dt, gameData);
   move(gameData, dt);
 
@@ -47,19 +49,17 @@ export function update(gameData: GameData, dt: number) {
 
   gameData.highlighted = raycast(gameData);
 
-  debug("is on ground", gameData.isOnGround)
 
-  // debug("gameData", gameData)
-  // debug("gameData", {})
-  // debug("position", gameData.position)
-  // debug("facing", gameData.facing)
-  // debug("cameraUp", gameData.cameraUp)
-  // debug("pitch", gameData.pitch)
-  // debug("yaw", gameData.yaw)
-  // debug("highlighted", gameData.highlighted)
-  // debug("blocks", gameData.blocks)
-  // debug("velocity", gameData.velocity)
-  // debug("isOnGround", gameData.isOnGround)
+  debug("position", gameData.position)
+  debug("facing", gameData.facing)
+  debug("pitch", gameData.pitch)
+  debug("yaw", gameData.yaw)
+  debug("highlighted position", gameData.highlighted)
+  debug("highlighted block id", gameData.blocks.getBlock(gameData.highlighted ?? [0,0 ,0]))
+  debug("highlighted block health", gameData.blocks.getBlockHealth(gameData.highlighted ?? [0, 0, 0]))
+  debug("highlighted block max health", blockTypeHealth[gameData.blocks.getBlock(gameData.highlighted ?? [0, 0, 0])])
+  debug("velocity", gameData.velocity)
+  debug("isOnGround", gameData.isOnGround)
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
 }
