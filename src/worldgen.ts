@@ -134,6 +134,7 @@ function makeBlocks(blocks: Blocks) {
           }
           break;
         }
+        blocks.setBlockHealth([x, y, z], Math.floor(Math.random() * 1024))
       }
     }
   }

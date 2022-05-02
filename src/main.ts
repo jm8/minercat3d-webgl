@@ -28,10 +28,10 @@ type ProgramInfo = {
 };
 
 export class Blocks {
-  array: Uint8Array
+  array: Uint32Array
 
   constructor() {
-    this.array = new Uint8Array(LAYER_SIZE * WORLD_DEPTH)
+    this.array = new Uint32Array(LAYER_SIZE * WORLD_DEPTH)
     generate(this);
   }
 
@@ -42,7 +42,7 @@ export class Blocks {
     if (x < 0 || x >= WORLD_SIZE) return 0;
     if (z < 0 || z >= WORLD_SIZE) return 0;
     if (y < 0 || y >= WORLD_DEPTH) return 0;
-    return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)]
+    return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)] & 63
   }
   
   setBlock([x, y, z]: vec3, block: number) {
@@ -50,9 +50,26 @@ export class Blocks {
     if (z < 0 || z >= WORLD_SIZE) return;
     if (y < 0 || y >= WORLD_DEPTH) return;
     const i = x + WORLD_SIZE * (z + WORLD_SIZE * y);
-    this.array[i] = block;
+    this.array[i] = (this.array[i] & (~63)) + block;
     this.gl?.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer)
-    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i, this.array, i, 1);
+    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i*4, this.array, i, 4);
+   }
+  
+  getBlockHealth([x, y, z]: vec3): number {
+    if (x < 0 || x >= WORLD_SIZE) return 0;
+    if (z < 0 || z >= WORLD_SIZE) return 0;
+    if (y < 0 || y >= WORLD_DEPTH) return 0;
+    return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)] >> 6
+  }
+  
+  setBlockHealth([x, y, z]: vec3, health: number) {
+    if (x < 0 || x >= WORLD_SIZE) return;
+    if (z < 0 || z >= WORLD_SIZE) return;
+    if (y < 0 || y >= WORLD_DEPTH) return;
+    const i = x + WORLD_SIZE * (z + WORLD_SIZE * y);
+    this.array[i] = (this.array[i] & (63)) + (health << 6);
+    this.gl?.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer)
+    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i*4, this.array, i, 4);
    }
 }
 
@@ -104,8 +121,7 @@ function main() {
     in vec2 aTextureCoord;
   
     // instance attributes
-    // don't understand why it's a float
-    in float iBlock;
+    in uint iBlock;
   
     out highp vec2 vTextureCoord;
     out float isAir;
@@ -126,35 +142,29 @@ function main() {
       vec3 highlightedPosition = vec3(highlighted.x, -highlighted.y, highlighted.z);
   
   
-      // don't unedrstand why this works
-      int blockId = int(iBlock);
-      int textureNum;
+      uint blockId = iBlock & 63u;
+      uint blockHealth = iBlock >> 6u;
+      uint textureNum;
   
 
       isAir = 0.0;
   
-
-      if (gl_InstanceID == 0) {
-        blockPosition = highlightedPosition;
-        blockId = 40;
-      }
-
       gl_Position = uProjectionMatrix * uModelViewMatrix * (aVertexPosition + vec4(blockPosition, 0.0));
   
-      if (blockId == 0) { // air
+      if (blockId == 0u) { // air
         isAir = 1.0;
-      } else if (blockId == 1) { // grass
+      } else if (blockId == 1u) { // grass
         if (gl_VertexID >= 8 && gl_VertexID < 12) {
           // top
-          textureNum = 0;
+          textureNum = 0u;
         } else if (gl_VertexID >= 12 && gl_VertexID < 16) {
           // bottom
-          textureNum = 2;
+          textureNum = 2u;
         } else {
-          textureNum = 1;
+          textureNum = 1u;
         }
       } else {
-        textureNum = blockId + 0;
+        textureNum = blockId;
       }
   
       isHighlighted = blockPosition == highlightedPosition ? 1.0 : 0.0;
@@ -481,7 +491,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gameData.blocks.buffer);
-  gl.vertexAttribPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_BYTE, false, 0, layerStart * LAYER_SIZE);
+  gl.vertexAttribIPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_INT,  0, layerStart * LAYER_SIZE);
   gl.vertexAttribDivisor(programInfo.attribLocations.block, 1);
   gl.enableVertexAttribArray(programInfo.attribLocations.block);
 
