@@ -23,26 +23,26 @@ window.addEventListener('mousemove', e => {
   mouseDelta[1] += e.movementY;
 });
 
-export const eyeHeight = 3.0;
-export const foreheadHeight = 0;
-export const playerWidth = .2;
+export const eyeHeight = 1.75;
+export const foreheadHeight = -1; // the collision for the top of the character is actually under the camera
+export const playerWidth = 0.1875;
 
 const fly = false;
 
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
-  if (!fly) gameData.velocity[1] -= 16*dt;
+  if (!fly) gameData.velocity[1] -= 16 * dt;
   keyboard(dt, gameData);
   move(gameData, dt);
-  
+
   if (justPressedMouseButtons[0] && gameData.highlighted) {
     gameData.blocks.setBlock(gameData.highlighted, 0)
   }
-  
+
   gameData.highlighted = raycast(gameData);
-  
+
   debug("is on ground", gameData.isOnGround)
-  
+
   // debug("gameData", gameData)
   // debug("gameData", {})
   // debug("position", gameData.position)
@@ -61,7 +61,7 @@ export function update(gameData: GameData, dt: number) {
 
 function raycast(gameData: GameData) {
   const highlightDist = 100;
-  
+
   const curr = vec3.create();
 
   for (let i = 0; i < highlightDist; i += 0.5) {
@@ -117,9 +117,9 @@ function keyboard(_dt: number, gameData: GameData) {
   const forward = vec3.copy(vec3.create(), gameData.facing);
   forward[1] = 0;
   vec3.normalize(forward, forward);
-  
+
   const right = vec3.cross(vec3.create(), forward, [0, 1, 0]);
-  
+
   gameData.velocity[0] = 0;
   if (fly) gameData.velocity[1] = 0;
   gameData.velocity[2] = 0;
@@ -132,7 +132,7 @@ function keyboard(_dt: number, gameData: GameData) {
   }
   if (pressedKeys.Space) {
     if (fly) gameData.velocity[1] = speed;
-    else if (gameData.isOnGround) gameData.velocity[1] = 10;
+    else if (gameData.isOnGround) gameData.velocity[1] = 9;
   }
   if (pressedKeys.ShiftLeft) {
     if (fly) gameData.velocity[1] = -speed;
@@ -165,10 +165,13 @@ function move(gameData: GameData, dt: number) {
 }
 
 function moveAxis(gameData: GameData, movement: vec3): boolean {
-  vec3.add(gameData.position, gameData.position, movement);
-  if (isColliding(gameData)) {
-    vec3.sub(gameData.position, gameData.position, movement);
-    return true;
+  const steps = 10;
+  for (let i = 0; i < steps; i++) {
+    vec3.scaleAndAdd(gameData.position, gameData.position, movement, 1/steps);
+    if (isColliding(gameData)) {
+      vec3.scaleAndAdd(gameData.position, gameData.position, movement, -1/steps);
+      return true;
+    }
   }
   return false;
 }
