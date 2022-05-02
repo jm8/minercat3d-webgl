@@ -23,19 +23,17 @@ window.addEventListener('mousemove', e => {
   mouseDelta[1] += e.movementY;
 });
 
-export const eyeHeight = 3.5;
+export const eyeHeight = 3.0;
 export const foreheadHeight = 0;
+export const playerWidth = .2;
 
-const fly = true;
+const fly = false;
 
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
   if (!fly) gameData.velocity[1] -= 16*dt;
   keyboard(dt, gameData);
-   
-  if (fly) vec3.scaleAndAdd(gameData.position, gameData.position, gameData.velocity, dt)
-  else moveAndSlide(gameData, dt);
-
+  move(gameData, dt);
   
   if (justPressedMouseButtons[0] && gameData.highlighted) {
     gameData.blocks.setBlock(gameData.highlighted, 0)
@@ -43,7 +41,19 @@ export function update(gameData: GameData, dt: number) {
   
   gameData.highlighted = raycast(gameData);
   
+  debug("is on ground", gameData.isOnGround)
   
+  // debug("gameData", gameData)
+  // debug("gameData", {})
+  // debug("position", gameData.position)
+  // debug("facing", gameData.facing)
+  // debug("cameraUp", gameData.cameraUp)
+  // debug("pitch", gameData.pitch)
+  // debug("yaw", gameData.yaw)
+  // debug("highlighted", gameData.highlighted)
+  // debug("blocks", gameData.blocks)
+  // debug("velocity", gameData.velocity)
+  // debug("isOnGround", gameData.isOnGround)
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
 }
@@ -67,7 +77,7 @@ function raycast(gameData: GameData) {
 
 }
 
-function mouse(dt: number, gameData: GameData) {
+function mouse(_dt: number, gameData: GameData) {
   let keyboardSpeed = 5;
   if (pressedKeys.ArrowRight) mouseDelta[0] += keyboardSpeed;
   if (pressedKeys.ArrowLeft) mouseDelta[0] -= keyboardSpeed;
@@ -102,7 +112,7 @@ function updateCameraFront(gameData: GameData) {
   vec3.normalize(gameData.facing, direction);
 }
 
-function keyboard(dt: number, gameData: GameData) {
+function keyboard(_dt: number, gameData: GameData) {
   const speed = 8;
   const forward = vec3.copy(vec3.create(), gameData.facing);
   forward[1] = 0;
@@ -142,45 +152,50 @@ function toBlockCoords(result: vec3, position: vec3): vec3 {
   return result;
 }
 
-function moveAndSlide(gameData: GameData, dt: number) {
+function move(gameData: GameData, dt: number) {
   const vdt = vec3.scale(vec3.create(), gameData.velocity, dt);
-  moveYDown(gameData, vdt[1]);
-  
-}
-
-function moveYDown(gameData: GameData, dy: numbe) {
-  const ySteps = 6; // should be >= terminal velocity
-  let pointOffset;
-  if (dy > 0) {
-    pointOffset = foreheadHeight;
-    gameData.isOnGround = false;
+  if (moveAxis(gameData, vec3.fromValues(vdt[0], 0, 0))) gameData.velocity[0] = 0;
+  if (moveAxis(gameData, vec3.fromValues(0, vdt[1], 0))) {
+    gameData.velocity[1] = 0;
+    if (vdt[1] <= 0) gameData.isOnGround = true;
   } else {
-    pointOffset = -eyeHeight;
+    gameData.isOnGround = false;
   }
-  for (let i = 0; i < ySteps; i++) {
-    gameData.position[1] += dy / ySteps;
-    debug("position", gameData.position);
-
-    const point = vec3.copy(vec3.create(), gameData.position);
-    point[1] += pointOffset;
-    
-    const pointBlock = toBlockCoords(vec3.create(), point);
-    if (dy < 0) debug("feet block", pointBlock)
-
-    if (gameData.blocks.getBlock(pointBlock)) {
-      if (dy < 0) {
-        gameData.position[1] = -pointBlock[1] - pointOffset
-        gameData.isOnGround = true;
-      } else {
-        gameData.position[1] = -pointBlock[1] - pointOffset - 1;
-      }
-      gameData.velocity[1] = 0;
-      break;
-    } else {
-      if (dy < 0) {
-        gameData.isOnGround = false;
-      }
-    }
-  }
+  if (moveAxis(gameData, vec3.fromValues(0, 0, vdt[2]))) gameData.velocity[2] = 0;
 }
 
+function moveAxis(gameData: GameData, movement: vec3): boolean {
+  vec3.add(gameData.position, gameData.position, movement);
+  if (isColliding(gameData)) {
+    vec3.sub(gameData.position, gameData.position, movement);
+    return true;
+  }
+  return false;
+}
+
+// TODO: only check needed corners
+const corners = [
+  vec3.fromValues(-playerWidth, -eyeHeight, -playerWidth),
+  vec3.fromValues(-playerWidth, -eyeHeight, playerWidth),
+  vec3.fromValues(playerWidth, -eyeHeight, -playerWidth),
+  vec3.fromValues(playerWidth, -eyeHeight, playerWidth),
+  vec3.fromValues(-playerWidth, foreheadHeight, -playerWidth),
+  vec3.fromValues(-playerWidth, foreheadHeight, playerWidth),
+  vec3.fromValues(playerWidth, foreheadHeight, -playerWidth),
+  vec3.fromValues(playerWidth, foreheadHeight, playerWidth),
+  // vec3.fromValues(-playerWidth, -foreheadHeight, -playerWidth),
+  // vec3.fromValues(-playerWidth, -foreheadHeight, playerWidth),
+  // vec3.fromValues(playerWidth, -foreheadHeight, -playerWidth),
+  // vec3.fromValues(playerWidth, -foreheadHeight, playerWidth),
+];
+
+function isColliding(gameData: GameData): boolean {
+  const block = vec3.create();
+  const point = vec3.create();
+  for (const corner of corners) {
+    vec3.add(point, gameData.position, corner);
+    toBlockCoords(block, point)
+    if (gameData.blocks.getBlock(block)) return true;
+  }
+  return false;
+}
