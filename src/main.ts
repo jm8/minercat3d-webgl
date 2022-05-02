@@ -57,7 +57,7 @@ export class Blocks {
 }
 
 let gameData: GameData = {
-  position: vec3.fromValues(WORLD_SIZE / 2, 10 + eyeHeight, WORLD_SIZE/2),
+  position: vec3.fromValues(WORLD_SIZE / 2, 10, WORLD_SIZE/2),
   // position: vec3.fromValues(WORLD_SIZE / 2, -6 + 4 + playerHeight, WORLD_SIZE/2),
   facing: vec3.fromValues(0, 0, 0),
   cameraUp: vec3.fromValues(0, 1, 0),

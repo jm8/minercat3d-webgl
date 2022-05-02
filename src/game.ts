@@ -26,12 +26,15 @@ window.addEventListener('mousemove', e => {
 export const eyeHeight = 3.5;
 export const foreheadHeight = 0;
 
+const fly = true;
+
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
-  gameData.velocity[1] -= 16*dt;
+  if (!fly) gameData.velocity[1] -= 16*dt;
   keyboard(dt, gameData);
    
-  moveAndSlide(gameData, dt);
+  if (fly) vec3.scaleAndAdd(gameData.position, gameData.position, gameData.velocity, dt)
+  else moveAndSlide(gameData, dt);
 
   
   if (justPressedMouseButtons[0] && gameData.highlighted) {
@@ -106,25 +109,29 @@ function keyboard(dt: number, gameData: GameData) {
   vec3.normalize(forward, forward);
   
   const right = vec3.cross(vec3.create(), forward, [0, 1, 0]);
+  
+  gameData.velocity[0] = 0;
+  if (fly) gameData.velocity[1] = 0;
+  gameData.velocity[2] = 0;
 
   if (pressedKeys.KeyW) {
-    vec3.scaleAndAdd(gameData.position, gameData.position, forward, speed*dt);
+    vec3.scaleAndAdd(gameData.velocity, gameData.velocity, forward, speed);
   }
   if (pressedKeys.KeyS) {
-    vec3.scaleAndAdd(gameData.position, gameData.position, forward, -speed*dt);
+    vec3.scaleAndAdd(gameData.velocity, gameData.velocity, forward, -speed);
   }
-  if (pressedKeys.Space && gameData.isOnGround) {
-    gameData.velocity[1] = 10;
-    // vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, speed*dt);
+  if (pressedKeys.Space) {
+    if (fly) gameData.velocity[1] = speed;
+    else if (gameData.isOnGround) gameData.velocity[1] = 10;
   }
   if (pressedKeys.ShiftLeft) {
-    // vec3.scaleAndAdd(gameData.cameraPos, gameData.cameraPos, gameData.cameraUp, -speed*dt);
+    if (fly) gameData.velocity[1] = -speed;
   }
   if (pressedKeys.KeyA) {
-    vec3.scaleAndAdd(gameData.position, gameData.position, right, -speed*dt);
+    vec3.scaleAndAdd(gameData.velocity, gameData.velocity, right, -speed);
   }
   if (pressedKeys.KeyD) {
-    vec3.scaleAndAdd(gameData.position, gameData.position, right, speed*dt);
+    vec3.scaleAndAdd(gameData.velocity, gameData.velocity, right, speed);
   }
 }
 
