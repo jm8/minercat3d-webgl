@@ -23,15 +23,21 @@ window.addEventListener('mousemove', e => {
   mouseDelta[1] += e.movementY;
 });
 
-export const eyeHeight = 1.75;
-export const foreheadHeight = -1; // the collision for the top of the character is actually under the camera
+export const tall = true;
+export const eyeHeight = tall ? 2.75 : 1.75;
+export const foreheadHeight = -1;
 export const playerWidth = 0.1875;
 
 const fly = false;
 
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
-  if (!fly) gameData.velocity[1] -= 16 * dt;
+  if (!fly) {
+    gameData.velocity[1] -= 16 * dt;
+    if (gameData.velocity[1] < -30) {
+      gameData.velocity[1] = -30;
+    }
+  }
   keyboard(dt, gameData);
   move(gameData, dt);
 
