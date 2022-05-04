@@ -47,7 +47,7 @@ export class Blocks {
     if (y < 0 || y >= WORLD_DEPTH) return 0;
     return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)] & 63
   }
-  
+
   setBlock([x, y, z]: vec3, block: number) {
     if (x < 0 || x >= WORLD_SIZE) return;
     if (z < 0 || z >= WORLD_SIZE) return;
@@ -55,16 +55,16 @@ export class Blocks {
     const i = x + WORLD_SIZE * (z + WORLD_SIZE * y);
     this.array[i] = (this.array[i] & (~63)) + block;
     this.gl?.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer)
-    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i*4, this.array, i, 4);
-   }
-  
+    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i * 4, this.array, i, 4);
+  }
+
   getBlockHealth([x, y, z]: vec3): number {
     if (x < 0 || x >= WORLD_SIZE) return 0;
     if (z < 0 || z >= WORLD_SIZE) return 0;
     if (y < 0 || y >= WORLD_DEPTH) return 0;
     return this.array[x + WORLD_SIZE * (z + WORLD_SIZE * y)] >> 6
   }
-  
+
   setBlockHealth([x, y, z]: vec3, health: number) {
     if (x < 0 || x >= WORLD_SIZE) return;
     if (z < 0 || z >= WORLD_SIZE) return;
@@ -72,27 +72,35 @@ export class Blocks {
     const i = x + WORLD_SIZE * (z + WORLD_SIZE * y);
     this.array[i] = (this.array[i] & (63)) + (health << 6);
     this.gl?.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer)
-    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i*4, this.array, i, 4);
-   }
+    this.gl?.bufferSubData(this.gl.ARRAY_BUFFER, i * 4, this.array, i, 4);
+  }
+
+  damage(pos: vec3, dh: number) {
+    const newHealth = gameData.blocks.getBlockHealth(pos) - dh;
+    if (newHealth <= 0) gameData.blocks.setBlock(pos, 0)
+    else gameData.blocks.setBlockHealth(pos, newHealth);
+  }
 }
 
 let gameData: GameData = {
   // position: vec3.fromValues(WORLD_SIZE / 2, 10, WORLD_SIZE/2),
-  position: vec3.fromValues(WORLD_SIZE + 4, -90, WORLD_SIZE + 4),
-  // position: vec3.fromValues(WORLD_SIZE / 2, -6 + 4 + playerHeight, WORLD_SIZE/2),
+  // position: vec3.fromValues(WORLD_SIZE + 4, -90, WORLD_SIZE + 4),
+  position: vec3.fromValues(WORLD_SIZE / 2, -6 + eyeHeight + .1, WORLD_SIZE / 2),
   facing: vec3.fromValues(0, 0, 0),
   cameraUp: vec3.fromValues(0, 1, 0),
 
   pitch: 0,
   yaw: 0,
-  
+
   highlighted: null,
 
   blocks: new Blocks(),
-  
+
   velocity: vec3.create(),
-  
+
   isOnGround: false,
+  
+  pickaxe: 0,
 };
 
 export type GameData = {
@@ -104,10 +112,12 @@ export type GameData = {
   yaw: number,
   highlighted: vec3 | null,
   blocks: Blocks
-  
+
   velocity: vec3,
-  
+
   isOnGround: boolean,
+
+  pickaxe: number,
 };
 
 function toGlslArray(array: number[], type: "uint"): string {
@@ -121,7 +131,7 @@ function toGlslArray(array: number[], type: "uint"): string {
   result += ")";
   return result;
 }
-  
+
 
 function main() {
   const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!;
@@ -130,7 +140,7 @@ function main() {
   const gl = canvas.getContext('webgl2');
 
   if (!gl) error("Unable to initialize WebGL2");
-  
+
   console.log(toGlslArray(blockTypeHealth, "uint"));
 
   const vsSource = `#version 300 es
@@ -528,7 +538,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gameData.blocks.buffer);
   // 4 is sizeof UNSIGNED_INT
-  gl.vertexAttribIPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_INT,  0, layerStart * 4 * LAYER_SIZE);
+  gl.vertexAttribIPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_INT, 0, layerStart * 4 * LAYER_SIZE);
   gl.vertexAttribDivisor(programInfo.attribLocations.block, 1);
   gl.enableVertexAttribArray(programInfo.attribLocations.block);
 
@@ -552,7 +562,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     programInfo.uniformLocations.layerStart,
     layerStart,
   );
-  
+
   gl.uniform3fv(
     programInfo.uniformLocations.highlighted,
     gameData.highlighted ?? [0, 0, 0],

@@ -43,4 +43,21 @@ export const blockTypeHealth = [
   350000,
   0,
   0,
-].map(x => x*90)
+].map(x => x * 90)
+
+export const pickaxeSpeed = [
+  1,
+  3,
+  7,
+  20,
+  60,
+  175,
+  450,
+  2500,
+  7500,
+  20000,
+  80000,
+  350000,
+  1500000,
+  5000000,
+].map(x => x * 90)

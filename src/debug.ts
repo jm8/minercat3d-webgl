@@ -13,4 +13,11 @@ function renderDebug() {
   requestAnimationFrame(renderDebug)
 }
 
+window.addEventListener('keydown', (e) => {
+  if (e.code == 'F3') {
+    el.classList.toggle("visible");
+  }
+  e.preventDefault();
+})
+
 requestAnimationFrame(renderDebug)

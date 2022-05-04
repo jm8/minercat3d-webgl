@@ -1,7 +1,7 @@
 import { GameData } from "./main"
 import { vec2, vec3 } from "gl-matrix"
 import { debug } from "./debug";
-import { blockTypeHealth } from "./content";
+import { blockTypeHealth, pickaxeSpeed } from "./content";
 
 let pressedKeys = Object.create(null);
 let justPressedKeys = Object.create(null);
@@ -11,9 +11,15 @@ window.onkeydown = e => {
 }
 window.onkeyup = e => pressedKeys[e.code] = false;
 
+let pressedMouseButtons = Object.create(null);
 let justPressedMouseButtons = Object.create(null);
 window.onmousedown = e => {
   justPressedMouseButtons[e.button] = true;
+  pressedMouseButtons[e.button] = true;
+}
+
+window.onmouseup = e => {
+  pressedMouseButtons[e.button] = false;
 }
 
 // mouseDelta is reset every update
@@ -43,8 +49,8 @@ export function update(gameData: GameData, dt: number) {
   keyboard(dt, gameData);
   move(gameData, dt);
 
-  if (justPressedMouseButtons[0] && gameData.highlighted) {
-    gameData.blocks.setBlock(gameData.highlighted, 0)
+  if (pressedMouseButtons[0] && gameData.highlighted) {
+    gameData.blocks.damage(gameData.highlighted, pickaxeSpeed[gameData.pickaxe]*dt);
   }
 
   gameData.highlighted = raycast(gameData);
