@@ -1,5 +1,5 @@
 import { mat4, vec3 } from 'gl-matrix';
-import { blockTypeHealth } from './content';
+import { backpackSpace, BEDROCK, blockTypeHealth } from './content';
 import { eyeHeight, update } from './game';
 import { generate } from './worldgen';
 import blocksPngUrl from '../blocks.png'
@@ -9,6 +9,8 @@ import './scratchyness';
 export const WORLD_SIZE = 24;
 export const WORLD_DEPTH = 8250;
 export const LAYER_SIZE = WORLD_SIZE * WORLD_SIZE;
+
+export const defaultPosition = vec3.fromValues(WORLD_SIZE / 2, -6 + eyeHeight + .2, WORLD_SIZE / 2);
 
 function error(message: string): never {
   alert(message);
@@ -77,16 +79,21 @@ export class Blocks {
   }
 
   damage(pos: vec3, dh: number) {
+    const blockType = gameData.blocks.getBlock(pos);
+    if (blockType === BEDROCK) return;
     const newHealth = gameData.blocks.getBlockHealth(pos) - dh;
-    if (newHealth <= 0) gameData.blocks.setBlock(pos, 0)
+    if (newHealth <= 0) {
+      gameData.blocks.setBlock(pos, 0)
+      if (gameData.backpack.length < backpackSpace[gameData.backpackType]) {
+        gameData.backpack.push(blockType)
+      }
+    }
     else gameData.blocks.setBlockHealth(pos, newHealth);
   }
 }
 
 let gameData: GameData = {
-  // position: vec3.fromValues(WORLD_SIZE / 2, 10, WORLD_SIZE/2),
-  // position: vec3.fromValues(WORLD_SIZE + 4, -90, WORLD_SIZE + 4),
-  position: vec3.fromValues(WORLD_SIZE / 2, -6 + eyeHeight + .1, WORLD_SIZE / 2),
+  position: vec3.copy(vec3.create(), defaultPosition),
   facing: vec3.fromValues(0, 0, 0),
   cameraUp: vec3.fromValues(0, 1, 0),
 
@@ -102,6 +109,14 @@ let gameData: GameData = {
   isOnGround: false,
   
   pickaxe: 0,
+  
+  backpackType: 0,  
+  backpack: [],
+  
+  cash: 0,
+  
+  hp: 0,
+  armor: 0,
 };
 
 export type GameData = {
@@ -119,6 +134,14 @@ export type GameData = {
   isOnGround: boolean,
 
   pickaxe: number,
+
+  backpackType: number,
+  backpack: number[],
+  
+  cash: number,
+  
+  hp: number,
+  armor: number,
 };
 
 function toGlslArray(array: number[], type: "uint"): string {
@@ -526,7 +549,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
 
   const playerLayer = Math.floor(-gameData.position[1]);
   debug("playerLayer", playerLayer);
-  const viewDistance = 100;
+  const viewDistance = 50;
 
   const layerStart = Math.min(Math.max(0, playerLayer - viewDistance), WORLD_DEPTH - 1);
   debug("layerStart", layerStart);

@@ -1,7 +1,7 @@
-import { GameData } from "./main"
+import { defaultPosition, GameData, WORLD_SIZE } from "./main"
 import { vec2, vec3 } from "gl-matrix"
 import { debug } from "./debug";
-import { blockTypeHealth, pickaxeSpeed } from "./content";
+import { backpackSpace, blockTypeCash, blockTypeHealth, pickaxeSpeed } from "./content";
 
 let pressedKeys = Object.create(null);
 let justPressedKeys = Object.create(null);
@@ -37,6 +37,18 @@ export const playerWidth = 0.1875;
 
 const fly = false;
 
+const backpackSpan = document.getElementById("backpack")!;
+const sellAllButton = document.getElementById("sellall")!;
+const layerSpan = document.getElementById("layer")!;
+const cashSpan = document.getElementById("cash")!;
+const hpSpan = document.getElementById("hp")!;
+
+let sellAllClicked = false;
+
+sellAllButton.addEventListener('click', () => {
+  sellAllClicked = true;
+})
+
 export function update(gameData: GameData, dt: number) {
   mouse(dt, gameData);
   if (!fly) {
@@ -54,6 +66,23 @@ export function update(gameData: GameData, dt: number) {
   }
 
   gameData.highlighted = raycast(gameData);
+  
+  if (sellAllClicked) {
+    vec3.zero(gameData.velocity);
+    vec3.copy(gameData.position, defaultPosition);
+    
+    for (const block of gameData.backpack) {
+      gameData.cash += blockTypeCash[block];
+    }
+    gameData.backpack.length = 0;
+    
+    sellAllClicked = false;
+  }
+  
+  layerSpan.textContent = (gameData.position[1] - eyeHeight).toFixed();
+  cashSpan.textContent = gameData.cash.toString() + "$";
+  hpSpan.textContent = "hp:"+gameData.hp.toString();
+  backpackSpan.textContent = `${gameData.backpack.length}/${backpackSpace[gameData.backpackType]}`
 
 
   debug("position", gameData.position)
@@ -61,11 +90,17 @@ export function update(gameData: GameData, dt: number) {
   debug("pitch", gameData.pitch)
   debug("yaw", gameData.yaw)
   debug("highlighted position", gameData.highlighted)
-  debug("highlighted block id", gameData.blocks.getBlock(gameData.highlighted ?? [0,0 ,0]))
+  const blockType = gameData.blocks.getBlock(gameData.highlighted ?? [0, 0, 0]);
+  debug("highlighted block id", blockType)
   debug("highlighted block health", gameData.blocks.getBlockHealth(gameData.highlighted ?? [0, 0, 0]))
-  debug("highlighted block max health", blockTypeHealth[gameData.blocks.getBlock(gameData.highlighted ?? [0, 0, 0])])
+  debug("highlighted block max health", blockTypeHealth[blockType])
+  debug("highlighted block cash", blockTypeCash[blockType])
   debug("velocity", gameData.velocity)
   debug("isOnGround", gameData.isOnGround)
+  debug("pickaxe", gameData.pickaxe)
+  debug("pickaxe speed", pickaxeSpeed[gameData.pickaxe]);
+  debug("backpack", gameData.backpack);
+
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
 }
@@ -197,6 +232,10 @@ const corners = [
   vec3.fromValues(-playerWidth, foreheadHeight, playerWidth),
   vec3.fromValues(playerWidth, foreheadHeight, -playerWidth),
   vec3.fromValues(playerWidth, foreheadHeight, playerWidth),
+  vec3.fromValues(-playerWidth, (foreheadHeight-eyeHeight)/2, -playerWidth),
+  vec3.fromValues(-playerWidth, (foreheadHeight-eyeHeight)/2, playerWidth),
+  vec3.fromValues(playerWidth, (foreheadHeight-eyeHeight)/2, -playerWidth),
+  vec3.fromValues(playerWidth, (foreheadHeight-eyeHeight)/2, playerWidth),
 ];
 
 function isColliding(gameData: GameData): boolean {

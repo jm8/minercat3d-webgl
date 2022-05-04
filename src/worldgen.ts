@@ -157,7 +157,7 @@ function makeCaves(blocks: Blocks) {
         fade *= Math.min(8, Math.min(x, WORLD_SIZE-x))/8
         fade *= Math.min(8, Math.min(z, WORLD_SIZE-z))/8
         const mult = .08;
-        const threshold = 0.45;
+        const threshold = 0.35;
         const isCave = simplex.noise3D(x * mult, y * mult, z * mult) * fade > threshold;
         if (showCaves) {
           blocks.setBlock([x, y, z], isCave ? 2 : 0);
