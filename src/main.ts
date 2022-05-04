@@ -10,7 +10,7 @@ export const WORLD_SIZE = 24;
 export const WORLD_DEPTH = 8250;
 export const LAYER_SIZE = WORLD_SIZE * WORLD_SIZE;
 
-export const defaultPosition = vec3.fromValues(WORLD_SIZE / 2, -6 + eyeHeight + .2, WORLD_SIZE / 2);
+export const defaultPosition = vec3.fromValues(WORLD_SIZE / 2, -5 + eyeHeight + .2, WORLD_SIZE / 2);
 
 function error(message: string): never {
   alert(message);

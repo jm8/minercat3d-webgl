@@ -31,8 +31,8 @@ window.addEventListener('mousemove', e => {
 });
 
 export const tall = true;
-export const eyeHeight = tall ? 2.75 : 1.75;
-export const foreheadHeight = -1;
+export const eyeHeight = tall ? 1.75 : 2.75;
+export const foreheadHeight = 0;
 export const playerWidth = 0.1875;
 
 const fly = false;
@@ -57,7 +57,7 @@ export function update(gameData: GameData, dt: number) {
       gameData.velocity[1] = -30;
     }
   }
-
+  
   keyboard(dt, gameData);
   move(gameData, dt);
 
@@ -100,24 +100,27 @@ export function update(gameData: GameData, dt: number) {
   debug("pickaxe", gameData.pickaxe)
   debug("pickaxe speed", pickaxeSpeed[gameData.pickaxe]);
   debug("backpack", gameData.backpack);
+  debug("feetpos", gameData.position[1] - eyeHeight);
 
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
 }
 
-
 function raycast(gameData: GameData) {
-  const highlightDist = 100;
+  const highlightDist = 3;
 
   const curr = vec3.create();
+  const currBlock = vec3.create();
 
-  for (let i = 0; i < highlightDist; i += 0.5) {
+  let i = 0;
+  while (i < highlightDist) {
     vec3.scaleAndAdd(curr, gameData.position, gameData.facing, i);
-    vec3.floor(curr, curr);
-    curr[1] *= -1;
-    if (gameData.blocks.getBlock(curr)) {
-      return curr;
+    toBlockCoords(currBlock, curr);
+    if (gameData.blocks.getBlock(currBlock)) {
+      return currBlock;
     }
+    
+    i += .01;
   }
 
   return null;
@@ -194,8 +197,8 @@ function keyboard(_dt: number, gameData: GameData) {
 
 function toBlockCoords(result: vec3, position: vec3): vec3 {
   vec3.copy(result, position);
-  result[1] *= -1;
   vec3.floor(result, result);
+  result[1] *= -1;
   return result;
 }
 
