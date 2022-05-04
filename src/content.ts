@@ -43,4 +43,4 @@ export const blockTypeHealth = [
   350000,
   0,
   0,
-].map(x => x*300)
+].map(x => x*90)

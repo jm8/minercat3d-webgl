@@ -182,7 +182,6 @@ function moveAxis(gameData: GameData, movement: vec3): boolean {
   return false;
 }
 
-// TODO: only check needed corners
 const corners = [
   vec3.fromValues(-playerWidth, -eyeHeight, -playerWidth),
   vec3.fromValues(-playerWidth, -eyeHeight, playerWidth),
@@ -192,10 +191,6 @@ const corners = [
   vec3.fromValues(-playerWidth, foreheadHeight, playerWidth),
   vec3.fromValues(playerWidth, foreheadHeight, -playerWidth),
   vec3.fromValues(playerWidth, foreheadHeight, playerWidth),
-  // vec3.fromValues(-playerWidth, -foreheadHeight, -playerWidth),
-  // vec3.fromValues(-playerWidth, -foreheadHeight, playerWidth),
-  // vec3.fromValues(playerWidth, -foreheadHeight, -playerWidth),
-  // vec3.fromValues(playerWidth, -foreheadHeight, playerWidth),
 ];
 
 function isColliding(gameData: GameData): boolean {

@@ -3,6 +3,7 @@ import { blockTypeHealth } from './content';
 import { eyeHeight, update } from './game';
 import { generate } from './worldgen';
 import blocksPngUrl from '../blocks.png'
+import { debug } from './debug';
 
 export const WORLD_SIZE = 24;
 export const WORLD_DEPTH = 8250;
@@ -76,7 +77,8 @@ export class Blocks {
 }
 
 let gameData: GameData = {
-  position: vec3.fromValues(WORLD_SIZE / 2, 10, WORLD_SIZE/2),
+  // position: vec3.fromValues(WORLD_SIZE / 2, 10, WORLD_SIZE/2),
+  position: vec3.fromValues(WORLD_SIZE + 4, -90, WORLD_SIZE + 4),
   // position: vec3.fromValues(WORLD_SIZE / 2, -6 + 4 + playerHeight, WORLD_SIZE/2),
   facing: vec3.fromValues(0, 0, 0),
   cameraUp: vec3.fromValues(0, 1, 0),
@@ -511,18 +513,22 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
   }
 
-  const playerLayer = -Math.floor(gameData.position[1]);
+  const playerLayer = Math.floor(-gameData.position[1]);
+  debug("playerLayer", playerLayer);
   const viewDistance = 100;
 
   const layerStart = Math.min(Math.max(0, playerLayer - viewDistance), WORLD_DEPTH - 1);
+  debug("layerStart", layerStart);
   const layerEnd = Math.max(0, Math.min(WORLD_DEPTH - 1, playerLayer + viewDistance));
+  debug("layerEnd", layerEnd);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
   gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gameData.blocks.buffer);
-  gl.vertexAttribIPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_INT,  0, layerStart * LAYER_SIZE);
+  // 4 is sizeof UNSIGNED_INT
+  gl.vertexAttribIPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_INT,  0, layerStart * 4 * LAYER_SIZE);
   gl.vertexAttribDivisor(programInfo.attribLocations.block, 1);
   gl.enableVertexAttribArray(programInfo.attribLocations.block);
 
