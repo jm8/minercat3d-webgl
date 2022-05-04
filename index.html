@@ -1,19 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Minercat3D</title>
-    <link rel="stylesheet" href="/src/main.css">
-  </head>
-  <body>
-    <div id="game">
-      <canvas width=640 height=480 id="canvas"></canvas>
-      <div id="crosshair"></div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minercat3D</title>
+  <link rel="stylesheet" href="/src/main.css">
+  <link rel="stylesheet" href="/src/scratch/common.css">
+  <link rel="stylesheet" href="/src/scratch/inline.css">
+  <link rel="stylesheet" href="/src/scratch/normalize.min.css">
+  <link rel="stylesheet" href="/src/scratch/projects.css">
+</head>
+
+<body>
+  <div id="navigation">
+  </div>
+  <div id="app">
+    <div id="page">
+      <div id="view">
+        <div class="preview">
+          <div class="inner">
+            <div class="flex-row preview-row force-row">
+              <div class="flex-row project-header"><a href="http://jsims.org"><img class="avatar" alt="josh"
+                    src="/avatar.webp"></a>
+                <div class="title">
+                  <div class="project-title no-edit" title="Miner Cat 3D">Miner Cat 3D</div>by <a
+                    href="http://jsims.org">josh</a>
+                </div>
+              </div>
+              <div class="project-buttons"><a href="https://github.com/jm8/minercat3d-webgl/"
+                  style="box-sizing: border-box; color: white;" class="button button see-inside-button"><span>See
+                    inside</span></a>
+              </div>
+            </div>
+            <div class="flex-row preview-row">
+              <div class="guiPlayer">
+                <div class="stage-wrapper_stage-wrapper_2bejr box_box_2jjDp" dir="ltr">
+                  <div class="box_box_2jjDp">
+                    <div class="stage-header_stage-header-wrapper_1F4gT box_box_2jjDp">
+                      <div class="stage-header_stage-menu-wrapper_15JJt box_box_2jjDp"
+                        style="padding-bottom: 0px; padding-top: 0px;">
+                        <!-- I don't know why but I had to add these width: 20px; height: 20px or else it to big -->
+                        <div class="controls_controls-container_2xinB"><img class="green-flag_green-flag_1kiAo"
+                            draggable="false" src="/greenflag.svg" title="Go" style="width: 20px; height: 20px;"><img
+                            class="stop-all_stop-all_1Y8P9" draggable="false" style="width: 20px; height: 20px;"
+                            src="/stop.svg" title="Stop"></div>
+                        <div class="stage-header_stage-size-row_14N65">
+                          <div><span class="button_outlined-button_1bS__ stage-header_stage-button_hkl9B"
+                              style="width: 20px; height: 20px;" role="button">
+                              <div class="button_content_3jdgj"><img alt="Enter full screen mode"
+                                  class="stage-header_stage-button-icon_3zzFK" draggable="false"
+                                  style="width: 20px; height: 20px;" src="/fullscreen.svg" title="Full Screen Control">
+                              </div>
+                            </span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="stage-wrapper_stage-canvas-wrapper_3ewmd box_box_2jjDp">
+                    <div class="stage_stage-wrapper_eRRuk box_box_2jjDp">
+                      <div class="stage_stage_1fD7k box_box_2jjDp" style="width: 480px; height: 360px;">
+                        <div id="game">
+                          <canvas width=480 height=360 style="width: 480px; height: 360px;" id="canvas"></canvas>
+                          <div id="crosshair"></div>
+                        </div>
+
+                        <div class="stage_frame-wrapper_1JaS_ box_box_2jjDp"></div>
+                      </div>
+                      <div class="stage_stage-overlays_eE14L box_box_2jjDp">
+                        <div class="stage_stage-bottom-wrapper_KIBfo" style="width: 480px; height: 360px;"></div><canvas
+                          class="stage_dragging-sprite_pxcJj" width="0" height="0"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-row project-notes">
+                <div class="description-block">
+                  <div class="project-textlabel"><span>Instructions</span></div>
+                  <div class="project-description">Miner Cat 3D the sequel of Miner Cat 2D<br>
+                    ___________________________________________<br>
+                    <br>
+                    WASD, space and mouse to move the cat.<br>
+                    Mine blocks with your mouse.<br>
+                    ___________________________________________<br>
+                    <br>
+                    Explore caves, avoid lava, get better gear and find new layers.<br>
+                  </div>
+                </div>
+                <div class="description-block">
+                  <div class="project-textlabel"><span>Notes and Credits</span></div>
+                  <div class="project-description">This game is inspired by the roblox game called<br>
+                    "Miner Cat 2 on Scratch".<br>
+                    Check it out with this link:<br>
+                    <a
+                      href="https://scratch.mit.edu/projects/351793769/">https://scratch.mit.edu/projects/351793769/</a><br>
+                    ___________________________________________<br>
+                    <br>
+                    Code: me<br>
+                    Art: <a href="https://scratch.mit.edu/users/Coltroc/">@Coltroc</a>, inspired by minecraft and
+                    others.<br>
+                    Music: Minecraft<br>
+                    Scratch: massachusetts institute of technology<br>
+                    ___________________________________________<br>
+                    <br>
+                    <a href="#">#MinerCat2</a> <a href="#">#Minercat</a> <a href="#">#Bigproject</a> <a
+                      href="#">#Coltroc</a>
+                    <a href="#">#Money</a> <a href="#">#mining</a> <a href="#">#Game</a> <a href="#">#Games</a> <a
+                      href="#">#Scrolling</a> <a href="#">#Platformer</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <pre id="debug">
+
+            </pre>
+          </div>
+
+        </div>
+      </div>
     </div>
-    <pre id="debug">
-    
-    </pre>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

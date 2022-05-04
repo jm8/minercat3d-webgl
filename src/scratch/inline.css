@@ -1,0 +1,520 @@
+
+
+/* #E5F0FF */ /* #E9F1FC */ /* #D9E3F2 */ /* 90% transparent version of motion-primary */ /* #FFFFFF */ /* 25% transparent version of ui-white */ /* 25% transparent version of ui-white */ /* 25% transparent version of ui-white */ /* 15% transparent version of black */ /* #575E75 */ /* #4C97FF */ /* #3373CC */ /* 35% transparent version of motion-primary */ /* 15% transparent version of motion-primary */ /* #FF661A */ /* #E64D00 */ /* #CF63CF */ /* #BD42BD */ /* #FFAB19 */ /* #FF8C1A */ /* #0FBD8C */ /* #0FBD8C */ /* #FF8C1A */ /* #FFB366 */ /* #FF8C1A */ /* #0FBD8C */ /* #0B8E69 */ /* 35% transparent version of extensions-primary */ /* opaque version of extensions-transparent, on white bg */ /* lighter than motion-primary */ .stop-all_stop-all_1Y8P9 {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.375rem;
+    border-radius: 0.25rem;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+    cursor: pointer;
+} .stop-all_stop-all_1Y8P9:hover {
+    background-color: hsla(215, 100%, 65%, 0.15);
+} .stop-all_stop-all_1Y8P9 {
+    opacity: 0.5;
+} .stop-all_stop-all_1Y8P9.stop-all_is-active_3nog0 {
+    opacity: 1;
+}
+
+/* #E5F0FF */ /* #E9F1FC */ /* #D9E3F2 */ /* 90% transparent version of motion-primary */ /* #FFFFFF */ /* 25% transparent version of ui-white */ /* 25% transparent version of ui-white */ /* 25% transparent version of ui-white */ /* 15% transparent version of black */ /* #575E75 */ /* #4C97FF */ /* #3373CC */ /* 35% transparent version of motion-primary */ /* 15% transparent version of motion-primary */ /* #FF661A */ /* #E64D00 */ /* #CF63CF */ /* #BD42BD */ /* #FFAB19 */ /* #FF8C1A */ /* #0FBD8C */ /* #0FBD8C */ /* #FF8C1A */ /* #FFB366 */ /* #FF8C1A */ /* #0FBD8C */ /* #0B8E69 */ /* 35% transparent version of extensions-primary */ /* opaque version of extensions-transparent, on white bg */ /* lighter than motion-primary */ .green-flag_green-flag_1kiAo {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.375rem;
+    border-radius: 0.25rem;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+    user-drag: none;
+    cursor: pointer;
+} .green-flag_green-flag_1kiAo:hover {
+    background-color: hsla(215, 100%, 65%, 0.15);
+} .green-flag_green-flag_1kiAo.green-flag_is-active_2oExT {
+    background-color: hsla(215, 100%, 65%, 0.35);
+}
+
+/* make sure to keep these in sync with other constants,
+e.g. STAGE_DIMENSION_DEFAULTS in lib/screen-utils.js */
+
+/* layout contants from `layout-constants.js` */
+
+/* #E5F0FF */
+
+/* #E9F1FC */
+
+/* #D9E3F2 */
+
+/* 90% transparent version of motion-primary */
+
+/* #FFFFFF */
+
+/* 25% transparent version of ui-white */
+
+/* 25% transparent version of ui-white */
+
+/* 25% transparent version of ui-white */
+
+/* 15% transparent version of black */
+
+/* #575E75 */
+
+/* #4C97FF */
+
+/* #3373CC */
+
+/* 35% transparent version of motion-primary */
+
+/* 15% transparent version of motion-primary */
+
+/* #FF661A */
+
+/* #E64D00 */
+
+/* #CF63CF */
+
+/* #BD42BD */
+
+/* #FFAB19 */
+
+/* #FF8C1A */
+
+/* #0FBD8C */
+
+/* #0FBD8C */
+
+/* #FF8C1A */
+
+/* #FFB366 */
+
+/* #FF8C1A */
+
+/* #0FBD8C */
+
+/* #0B8E69 */
+
+/* 35% transparent version of extensions-primary */
+
+/* opaque version of extensions-transparent, on white bg */
+
+/* lighter than motion-primary */
+
+/*
+    Contains constants for the z-index values of elements that are part of the global stack context.
+    In other words, z-index values that are "inside" a component are not added here.
+    This prevents conflicts between identical z-index values in different components.
+*/
+
+/* Toolbox z-index: 40; set in scratch-blocks */
+
+/* tooltips should go over add buttons if they overlap */
+
+/* monitors go over add buttons */
+
+/* "ask" block text input goes above monitors */
+
+/* menu-bar should go over monitors, alerts and tutorials */
+
+/* Block drag z-index: 1000; default 50 is overriden in blocks.css */
+
+/* so it is draggable into other panes */
+
+/* in most interfaces, the context menu is always on top */
+
+.stage-header_stage-header-wrapper_1F4gT {
+    position: relative;
+}
+
+.stage-header_stage-header-wrapper-overlay_5vfJa {
+    position: fixed;
+    background-color: rgb(232, 237, 241);
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5000;
+}
+
+.stage-header_stage-menu-wrapper_15JJt {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    margin: auto;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+    -webkit-flex-shrink: 0;
+        -ms-flex-negative: 0;
+            flex-shrink: 0;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+        -ms-flex-align: center;
+            align-items: center;
+    height: 2.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.stage-header_embed-scratch-logo_2K5GA img {
+    height:  1.6rem;
+    vertical-align: middle;
+    opacity: .6;
+}
+
+.stage-header_stage-size-row_14N65 {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+}
+
+.stage-header_stage-size-toggle-group_17LtK {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+}
+
+[dir="ltr"] .stage-header_stage-size-toggle-group_17LtK {
+    margin-right: .2rem;
+}
+
+[dir="rtl"] .stage-header_stage-size-toggle-group_17LtK {
+    margin-left: .2rem;
+}
+
+.stage-header_stage-button_hkl9B {
+    display: block;
+    border: 1px solid hsla(0, 0%, 0%, 0.15);
+    border-radius: calc(0.5rem / 2);
+    width: calc(2rem + 2px);
+    height: calc(2rem + 2px);
+    background: hsla(0, 100%, 100%, 1);
+    padding: 0.375rem;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+    cursor: pointer;
+}
+
+.stage-header_stage-button-icon_3zzFK {
+    width: 100%;
+    height: 100%;
+}
+
+[dir="rtl"] .stage-header_stage-button-icon_3zzFK {
+    -webkit-transform: scaleX(-1);
+        -ms-transform: scaleX(-1);
+            transform: scaleX(-1);
+}
+
+[dir="ltr"] .stage-header_stage-button-first_y_CLF {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+[dir="ltr"] .stage-header_stage-button-last_eeKZ4 {
+    border-left: none;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+[dir="rtl"] .stage-header_stage-button-first_y_CLF {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+[dir="rtl"] .stage-header_stage-button-last_eeKZ4 {
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.stage-header_stage-button-toggled-off_AJ8yG {
+    -webkit-filter: saturate(0);
+            filter: saturate(0);
+}
+/* make sure to keep these in sync with other constants,
+e.g. STAGE_DIMENSION_DEFAULTS in lib/screen-utils.js */
+
+/* layout contants from `layout-constants.js` */
+
+/* #E5F0FF */
+
+/* #E9F1FC */
+
+/* #D9E3F2 */
+
+/* 90% transparent version of motion-primary */
+
+/* #FFFFFF */
+
+/* 25% transparent version of ui-white */
+
+/* 25% transparent version of ui-white */
+
+/* 25% transparent version of ui-white */
+
+/* 15% transparent version of black */
+
+/* #575E75 */
+
+/* #4C97FF */
+
+/* #3373CC */
+
+/* 35% transparent version of motion-primary */
+
+/* 15% transparent version of motion-primary */
+
+/* #FF661A */
+
+/* #E64D00 */
+
+/* #CF63CF */
+
+/* #BD42BD */
+
+/* #FFAB19 */
+
+/* #FF8C1A */
+
+/* #0FBD8C */
+
+/* #0FBD8C */
+
+/* #FF8C1A */
+
+/* #FFB366 */
+
+/* #FF8C1A */
+
+/* #0FBD8C */
+
+/* #0B8E69 */
+
+/* 35% transparent version of extensions-primary */
+
+/* opaque version of extensions-transparent, on white bg */
+
+/* lighter than motion-primary */
+
+/*
+    Contains constants for the z-index values of elements that are part of the global stack context.
+    In other words, z-index values that are "inside" a component are not added here.
+    This prevents conflicts between identical z-index values in different components.
+*/
+
+/* Toolbox z-index: 40; set in scratch-blocks */
+
+/* tooltips should go over add buttons if they overlap */
+
+/* monitors go over add buttons */
+
+/* "ask" block text input goes above monitors */
+
+/* menu-bar should go over monitors, alerts and tutorials */
+
+/* Block drag z-index: 1000; default 50 is overriden in blocks.css */
+
+/* so it is draggable into other panes */
+
+/* in most interfaces, the context menu is always on top */
+
+.stage_stage_1fD7k {
+    /*
+        Fixes a few extra pixels of margin/padding, that adds on to the bottom
+        of the element, which messes up the chrome padding consistency
+    */
+    display: block;
+
+    border-radius: 0.5rem;
+    border: 0.0625rem solid hsla(0, 0%, 0%, 0.15);
+    overflow: hidden;
+
+    /* @todo: This is for overriding the value being set somewhere. Where is it being set? */
+    background-color: transparent;
+
+    /* Allow custom touch handling to prevent scrolling on Edge */
+    -ms-touch-action: none;
+        touch-action: none;
+
+    /* Make sure border is not included in size calculation */
+    -webkit-box-sizing: content-box !important;
+            box-sizing: content-box !important;
+
+    /* enforce overflow + reset position of absolutely-positioned children */
+    position: relative;
+}
+
+.stage_stage_1fD7k.stage_full-screen_ZO7xi {
+    border: 0.1875rem solid rgb(126, 133, 151);
+}
+
+.stage_with-color-picker_1lNd5 {
+    cursor: none;
+    z-index: 2010;
+}
+
+.stage_color-picker-background_2wCVq {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.55);
+    display: block;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+}
+
+.stage_stage-wrapper_eRRuk {
+    position: relative;
+}
+
+/* we want stage overlays to all be positioned in the same spot as the stage, but can't put them inside the border
+because we want their overflow to be visible, and the bordered element must have overflow: hidden set so that the
+stage doesn't "spill" out from under its rounded corners. instead, shift these over by the border width. */
+
+.stage_stage-overlays_eE14L {
+    position: absolute;
+    top: 0.0625rem;
+    left: 0.0625rem;
+
+    /* the overlay itself should not capture pointer events; only its child elements can do that */
+    pointer-events: none;
+}
+
+.stage_stage-overlays_eE14L.stage_full-screen_ZO7xi {
+    top: 0.1875rem;
+    left: 0.1875rem;
+}
+
+.stage_monitor-wrapper_2w6m8,
+.stage_frame-wrapper_1JaS_,
+.stage_green-flag-overlay-wrapper_2hUi_ {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.stage_dragging-sprite_pxcJj {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1020;
+    -webkit-filter: drop-shadow(5px 5px 5px hsla(0, 0%, 0%, 0.15));
+            filter: drop-shadow(5px 5px 5px hsla(0, 0%, 0%, 0.15));
+}
+
+.stage_stage-bottom-wrapper_KIBfo {
+    position: absolute;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    -webkit-box-pack: end;
+    -webkit-justify-content: flex-end;
+        -ms-flex-pack: end;
+            justify-content: flex-end;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.stage_mic-indicator_3AvN8 {
+    -webkit-transform-origin: bottom right;
+        -ms-transform-origin: bottom right;
+            transform-origin: bottom right;
+    z-index: 45;
+    pointer-events: none;
+    -webkit-align-self: flex-end;
+        -ms-flex-item-align: end;
+            align-self: flex-end;
+}
+
+.stage_question-wrapper_3ukB4 {
+    z-index: 49;
+    pointer-events: auto;
+}
+
+.stage_frame_OVq5G {
+    background: hsla(215, 100%, 65%, 0.35);
+    border: 2px solid hsla(215, 100%, 65%, 1);
+    border-radius: 0.5rem;
+    -webkit-animation-name: stage_flash_iuAnU;
+            animation-name: stage_flash_iuAnU;
+    -webkit-animation-duration: 0.75s;
+            animation-duration: 0.75s;
+    -webkit-animation-fill-mode: forwards;
+            animation-fill-mode: forwards; /* Leave at 0 opacity after animation */
+}
+
+.stage_green-flag-overlay-wrapper_2hUi_ {
+    width: 100%;
+    height: 100%;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+        -ms-flex-align: center;
+            align-items: center;
+    background: rgba(0,0,0,0.25);
+    border-radius: 0.5rem;
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.stage_green-flag-overlay_gNXnv {
+    padding: 1rem;
+    border-radius: 100%;
+    background: rgba(255,255,255,0.75);
+    border: 3px solid hsla(0, 100%, 100%, 1);
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    width: 5rem;
+    height: 5rem;
+}
+
+.stage_green-flag-overlay_gNXnv > img {
+    width: 100%;
+    -o-object-fit: contain;
+       object-fit: contain;
+}
+
+@-webkit-keyframes stage_flash_iuAnU {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes stage_flash_iuAnU {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
