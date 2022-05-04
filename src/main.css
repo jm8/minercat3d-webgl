@@ -41,95 +41,75 @@ body, html {
   image-rendering: pixelated; /* Chrome */
   image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
   -ms-interpolation-mode: nearest-neighbor;   /* IE8+ */      
+}
 
+@font-face {
+  font-family: "pixel";
+  src: url("/minercat.ttf") format("truetype");
+}
+
+#gui {
+  pointer-events: none;
+  position: relative;
+  height: 100%;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+
+  color: white;
+  font-size: 16px;
+  font-family: pixel;
+}
+
+#gui .row {
+  display: flex;
+  flex-direction: row;
+  height: 41px;
+  align-items: center;
+  padding: 0 15px;
+  justify-content: space-between;
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+#gui .buttons {
+  justify-self: flex-end;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 8px;
+
+}
+
+#gui .gamebutton {
+  pointer-events: all;
+  background-color: rgba(0, 0, 0, 1);
+  border: none;
+  border-radius: 0;
+  padding: 8px;
+}
+
+#gui .gamebutton:hover {
+  opacity: .75;
+  transform: scale(102%);
+  animation: wiggle 0.36s alternate infinite ease-in-out;
+}
+
+@keyframes wiggle {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
 }
 
 #debug {
   visibility: hidden;
+  background-color:rgba(0, 0, 0, 0.85);
 }
 
 #debug.visible {
   visibility: visible;
 }
-
-/* #navigation {
-  background-color: rgb(77, 151, 255);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: rgba(0, 0, 0, 0.25) 0px 0px 3px 0px;
-  height: 50px;
-}
-
-#view {
-  background-color: rgb(252, 252, 252);
-  margin-top: 50px;
-  min-height: 680px;
-  min-width: 100%;  
-}
-
-.flex-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-}
-
-.preview-row {
-  justify-content: space-between;
-  margin-top: 16px;
-}
-
-.inner {
-  min-width: 640px;
-  width: 790.2px;
-  margin: 0 auto;
-}
-
-.project-header {
-  justify-content: flex-start;
-  margin-right: 2rem;
-  min-width: 0px;
-  flex-grow: 1;
-}
-
-a {
-  color: rgb(77, 151, 255);
-  cursor: pointer;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.title {
-  flex-grow: 1;
-  font-size: 0.8rem;
-  margin-left: 1rem;
-  text-align: left;
-}
-
-.project-title {
-  font-size: 28px;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.see-inside-button {
-  appearance: button;
-  background-color: rgb(77, 151, 255);
-  border-radius: 4px;
-  cursor: pointer;
-  display: inline-block;
-  font-size: 14px;
-  height: 2.5rem;
-  margin-bottom: 0.5rem;
-  margin-left: 1rem;
-  margin-top: 0;
-  padding-bottom: 0.6875rem;
-  padding-left: 0.8375rem;
-  padding-right: 0.9375rem;
-  padding-top: 0.6875rem;
-  text-align: center;
-  border: none;
-  color: white;
-  font-weight: 700;
-} */
-

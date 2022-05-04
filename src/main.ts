@@ -4,6 +4,7 @@ import { eyeHeight, update } from './game';
 import { generate } from './worldgen';
 import blocksPngUrl from '../blocks.png'
 import { debug } from './debug';
+import './scratchyness';
 
 export const WORLD_SIZE = 24;
 export const WORLD_DEPTH = 8250;
