@@ -107,7 +107,7 @@ export function update(gameData: GameData, dt: number) {
 }
 
 function raycast(gameData: GameData) {
-  const highlightDist = 3;
+  const highlightDist = 5;
 
   const curr = vec3.create();
   const currBlock = vec3.create();
