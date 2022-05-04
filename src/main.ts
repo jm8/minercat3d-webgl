@@ -2,6 +2,7 @@ import { mat4, vec3 } from 'gl-matrix';
 import { blockTypeHealth } from './content';
 import { eyeHeight, update } from './game';
 import { generate } from './worldgen';
+import blocksPngUrl from '../blocks.png'
 
 export const WORLD_SIZE = 24;
 export const WORLD_DEPTH = 8250;
@@ -250,7 +251,7 @@ function main() {
 
   const buffers = initBuffers(gl);
 
-  const blocksTexture = loadTexture(gl, 'blocks.png')
+  const blocksTexture = loadTexture(gl, blocksPngUrl)
 
   let then = 0;
 
