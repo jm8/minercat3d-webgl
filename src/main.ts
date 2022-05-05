@@ -343,7 +343,7 @@ function main() {
     const dt = now - then;
     then = now;
     
-    if (!gameData.shopOpen) update(gameData, dt);
+    update(gameData, dt);
 
     drawScene(gl!, blocksTexture, programInfo, buffers);
 
