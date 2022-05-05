@@ -51,7 +51,8 @@ body, html {
 #gui {
   pointer-events: none;
   position: relative;
-  height: 100%;
+  width: 480px;
+  height: 360px;
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -189,4 +190,25 @@ body, html {
   height: 48px;
   image-rendering: pixelated; /* Chrome */
   object-fit: contain;
+}
+
+.fullscreen #game {
+  width: 960px;
+  height: 720px;
+}
+
+.fullscreen #crosshair {
+  width: 48px;
+  height: 48px;
+}
+
+.fullscreen #gui {
+  transform: scale(200%);
+  transform-origin: top left;
+}
+
+.fullscreen #shopmenu {
+  left: 25%;
+  top: 25%;
+  transform: translate(50%, 10%) scale(200%);
 }
