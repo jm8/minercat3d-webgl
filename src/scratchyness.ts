@@ -10,8 +10,8 @@ export function enterFullscreen() {
           draggable="false" src="/greenflag.svg" title="Go"><img class="stop-all_stop-all_1Y8P9"
           draggable="false" src="/stop.svg" title="Stop"></div><span
         class="button_outlined-button_1bS__ stage-header_stage-button_hkl9B" role="button">
-        <div class="button_content_3jdgj"><img alt="Exit full screen mode"
-            class="stage-header_stage-button-icon_3zzFK" id="closefullscreen" draggable="false" src="/closefullscreen.svg"
+        <div class="button_content_3jdgj"><img id="closefullscreen" alt="Exit full screen mode"
+            class="stage-header_stage-button-icon_3zzFK" draggable="false" src="/closefullscreen.svg"
             title="Full Screen Control">
         </div>
       </span>
