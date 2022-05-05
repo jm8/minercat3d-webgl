@@ -125,6 +125,8 @@ let gameData: GameData = {
 
   hp: 0,
   armor: 0,
+  
+  shopOpen: false,
 };
 
 export type GameData = {
@@ -150,6 +152,8 @@ export type GameData = {
 
   hp: number,
   armor: number,
+  
+  shopOpen: boolean,
 };
 
 function toGlslArray(array: number[], type: "uint"): string {
@@ -330,8 +334,8 @@ function main() {
     now *= 0.001;
     const dt = now - then;
     then = now;
-
-    update(gameData, dt);
+    
+    if (!gameData.shopOpen) update(gameData, dt);
 
     drawScene(gl!, blocksTexture, programInfo, buffers);
 
