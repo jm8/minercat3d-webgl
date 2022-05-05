@@ -64,6 +64,7 @@ shopButton.addEventListener('click', () => {
   shopButtonClicked = true;
 })
 
+
 let tabClicked: number | null = null;
 
 for (let i = 0; i < shopTabs.children.length; i++) {

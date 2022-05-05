@@ -137,6 +137,8 @@ body, html {
 #shopmenu .tabs {
   display: flex;
   flex-direction: row;
+  align-items: space-between;
+  padding: 0;
   gap: 4px;
 }
 
