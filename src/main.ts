@@ -132,6 +132,8 @@ let gameData: GameData = {
   },
 };
 
+window["gameData"] = gameData;
+
 export type GameData = {
   position: vec3,
   facing: vec3,

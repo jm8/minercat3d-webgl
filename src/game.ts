@@ -51,6 +51,8 @@ const shopmenu = document.getElementById("shopmenu")!;
 const shopTabs = document.getElementById("shoptabs")!;
 const shopIcon = (document.getElementById("shopicon") as HTMLImageElement)!;
 const shopPrice = document.getElementById("shopprice")!;
+const shopMax = document.getElementById("shopmax")!;
+const shopNotMax = document.getElementById("shopnotmax")!;
 
 let sellAllClicked = false;
 
@@ -197,20 +199,41 @@ function processButtons(gameData: GameData) {
 
 function showShopData(tab: number, gameData: GameData) {
   if (tab === 0) {
-    shopIcon.src = `/minercat3d/pickaxe/pickaxe${gameData.pickaxe + 2}.png`;
-    shopPrice.textContent = pickaxeCost[gameData.pickaxe + 1] + "$";
-    shopInfoName.textContent = pickaxeName[gameData.pickaxe + 1].toLowerCase();
-    shopInfoNumber.textContent = "speed: " + pickaxeSpeed[gameData.pickaxe + 1];
+    if (gameData.pickaxe + 1 < pickaxeCost.length) {
+      shopNotMax.classList.add("visible");
+      shopMax.classList.remove("visible");
+      shopIcon.src = `/minercat3d/pickaxe/pickaxe${gameData.pickaxe + 2}.png`;
+      shopPrice.textContent = pickaxeCost[gameData.pickaxe + 1] + "$";
+      shopInfoName.textContent = pickaxeName[gameData.pickaxe + 1].toLowerCase();
+      shopInfoNumber.textContent = "speed: " + pickaxeSpeed[gameData.pickaxe + 1];
+    } else {
+      shopNotMax.classList.remove("visible");
+      shopMax.classList.add("visible");
+    }
   } else if (tab === 1) {
+    if (gameData.backpack + 1 < backpackCost.length) {
+      shopNotMax.classList.add("visible");
+      shopMax.classList.remove("visible");
     shopIcon.src = `/minercat3d/backpack/backpack${gameData.backpack + 2}.png`;
     shopPrice.textContent = backpackCost[gameData.backpack + 1] + "$";
     shopInfoName.textContent = backpackName[gameData.backpack + 1].toLowerCase();
     shopInfoNumber.textContent = "space: " + backpackSpace[gameData.backpack + 1];
+    } else {
+      shopNotMax.classList.remove("visible");
+      shopMax.classList.add("visible");
+    }
   } else if (tab === 2) {
+    if (gameData.armor + 1 < armorCost.length) {
+      shopNotMax.classList.add("visible");
+      shopMax.classList.remove("visible");
     shopIcon.src = `/minercat3d/armor/armor${gameData.armor + 2}.png`;
     shopPrice.textContent = armorCost[gameData.armor + 1] + "$";
     shopInfoName.textContent = armorName[gameData.armor + 1].toLowerCase();
     shopInfoNumber.textContent = "health: " + armorHealth[gameData.armor + 1];
+    } else {
+      shopNotMax.classList.remove("visible");
+      shopMax.classList.add("visible");
+    }
   }
 }
 
