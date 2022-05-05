@@ -173,15 +173,20 @@ body, html {
 #shopmenu .info {
   position: absolute;
   font-size: 8px;
-  width: 100%;
-  transform: translateX(200px);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  width: 100%;
+  left: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+#shopmenu div {
+  padding: 8px;
 }
 
 #shopmenu .icon {
   width: 48px;
   height: 48px;
   image-rendering: pixelated; /* Chrome */
+  object-fit: contain;
 }

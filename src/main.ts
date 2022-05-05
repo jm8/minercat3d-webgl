@@ -92,8 +92,8 @@ export class Blocks {
     const newHealth = gameData.blocks.getBlockHealth(pos) - dh;
     if (newHealth <= 0) {
       gameData.blocks.setBlock(pos, 0)
-      if (gameData.backpack.length < backpackSpace[gameData.backpackType]) {
-        gameData.backpack.push(blockType)
+      if (gameData.backpackContents.length < backpackSpace[gameData.backpack]) {
+        gameData.backpackContents.push(blockType)
       }
     }
     else gameData.blocks.setBlockHealth(pos, newHealth);
@@ -118,8 +118,8 @@ let gameData: GameData = {
 
   pickaxe: 0,
 
-  backpackType: 0,
-  backpack: [],
+  backpack: 0,
+  backpackContents: [],
 
   cash: 0,
 
@@ -148,8 +148,8 @@ export type GameData = {
 
   pickaxe: number,
 
-  backpackType: number,
-  backpack: number[],
+  backpack: number,
+  backpackContents: number[],
 
   cash: number,
 
@@ -177,7 +177,9 @@ function toGlslArray(array: number[], type: "uint"): string {
 
 function main() {
   const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!;
-  canvas.addEventListener('click', () => canvas.requestPointerLock());
+  canvas.addEventListener('click', () => {
+    if (!gameData.shop.open) canvas.requestPointerLock()
+  });
 
   const gl = canvas.getContext('webgl2');
 

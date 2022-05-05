@@ -62,6 +62,40 @@ export const pickaxeSpeed = [
   5000000,
 ].map(x => x * 90)
 
+export const pickaxeCost = [
+  0,
+  100,
+  1500,
+  5000,
+  30000,
+  125000,
+  350000,
+  1500000,
+  7500000,
+  45000000,
+  250000000,
+  1000000000,
+  10000000000,
+  100000000000,
+]
+
+export const pickaxeName = [
+  "Wood Pickaxe",
+  "Stone Pickaxe",
+  "Copper Pickaxe",
+  "Iron Pickaxe",
+  "Platinum Pickaxe",
+  "Gold Pickaxe",
+  "Diamond Pickaxe",
+  "Emerald Pickaxe",
+  "Ruby Pickaxe",
+  "Master Pickaxe",
+  "Obsidian Pickaxe",
+  "Sapphire Pickaxe",
+  "Hellstone Pickaxe",
+  "Fire Pickaxe",
+]
+
 export const backpackSpace = [
   10,
   20,
@@ -73,6 +107,62 @@ export const backpackSpace = [
   450,
 ]
 
+export const backpackCost = [
+    0,
+    450,
+    5000,
+    16000,
+    100000,
+    750000,
+    5000000,
+    45000000
+]
+
+export const backpackName = [
+    "Hands",
+    "Cola Can",
+    "Water Bottle",
+    "Pringles Can",
+    "Plastic Bag",
+    "School Backpack",
+    "Normal Backpack",
+    "Miner Backpack"
+]
+
+export const armorHealth = [
+    100,
+    120,
+    140,
+    200,
+    350,
+    650,
+    1000,
+    7500
+]
+
+export const armorName = [
+    "nothing",
+    "Copper Armor",
+    "Iron Armor",
+    "Gold Armor",
+    "Diamond Armor",
+    "Emerald Armor",
+    "Sapphire Armor",
+    "Hellstone Armor"
+]
+
+export const armorCost = [
+    0,
+    10000,
+    200000,
+    2500000,
+    20000000,
+    100000000,
+    1000000000,
+    25000000000
+]
+ 
+  
 export const blockTypeCash = [
   0,
   1,

@@ -1,7 +1,7 @@
-import { defaultPosition, GameData, WORLD_SIZE } from "./main"
+import { defaultPosition, GameData } from "./main"
 import { vec2, vec3 } from "gl-matrix"
 import { debug } from "./debug";
-import { backpackSpace, blockTypeCash, blockTypeHealth, pickaxeSpeed } from "./content";
+import { backpackSpace, blockTypeCash, blockTypeHealth, pickaxeCost, pickaxeName, pickaxeSpeed, backpackName, backpackCost, armorHealth, armorName, armorCost } from "./content";
 
 let pressedKeys = Object.create(null);
 let justPressedKeys = Object.create(null);
@@ -87,7 +87,7 @@ export function update(gameData: GameData, dt: number) {
   layerSpan.textContent = (gameData.position[1] - eyeHeight).toFixed();
   cashSpan.textContent = toNumberString(gameData.cash) + "$";
   hpSpan.textContent = "hp:"+gameData.hp.toString();
-  backpackSpan.textContent = `${gameData.backpack.length}/${backpackSpace[gameData.backpackType]}`
+  backpackSpan.textContent = `${gameData.backpackContents.length}/${backpackSpace[gameData.backpack]}`
 
 
   debug("position", gameData.position)
@@ -104,7 +104,7 @@ export function update(gameData: GameData, dt: number) {
   debug("isOnGround", gameData.isOnGround)
   debug("pickaxe", gameData.pickaxe)
   debug("pickaxe speed", pickaxeSpeed[gameData.pickaxe]);
-  debug("backpack", gameData.backpack);
+  debug("backpack", gameData.backpackContents);
   debug("feetpos", gameData.position[1] - eyeHeight);
 
   justPressedKeys = Object.create(null);
@@ -135,10 +135,10 @@ function processButtons(gameData: GameData) {
         vec3.zero(gameData.velocity);
         vec3.copy(gameData.position, defaultPosition);
 
-        for (const block of gameData.backpack) {
+        for (const block of gameData.backpackContents) {
             gameData.cash += blockTypeCash[block];
         }
-        gameData.backpack.length = 0;
+        gameData.backpackContents.length = 0;
 
         sellAllClicked = false;
     }
@@ -175,10 +175,20 @@ function processButtons(gameData: GameData) {
 
 function showShopData(tab: number, gameData: GameData) {
   if (tab === 0) {
-    shopIcon.src = `/minercat3d/pickaxe${gameData.pickaxe+1}.png`;
-    shopPrice.textContent = toNumberString(100) + "$";
-    shopInfoName.textContent = "ur mom pickaxe";
-    shopInfoNumber.textContent = "speed: " + toNumberString(7);
+    shopIcon.src = `/minercat3d/pickaxe/pickaxe${gameData.pickaxe+2}.png`;
+    shopPrice.textContent = pickaxeCost[gameData.pickaxe+1] + "$";
+    shopInfoName.textContent = pickaxeName[gameData.pickaxe+1].toLowerCase();
+    shopInfoNumber.textContent = "speed: " + pickaxeSpeed[gameData.pickaxe+1];
+  } else if (tab === 1) {
+    shopIcon.src = `/minercat3d/backpack/backpack${gameData.backpack+2}.png`;
+    shopPrice.textContent = backpackCost[gameData.backpack+1] + "$";
+    shopInfoName.textContent = backpackName[gameData.backpack+1].toLowerCase();
+    shopInfoNumber.textContent = "space: " + backpackSpace[gameData.backpack+1];
+  } else if (tab === 2) {
+    shopIcon.src = `/minercat3d/armor/armor${gameData.armor+2}.png`;
+    shopPrice.textContent = armorCost[gameData.armor+1] + "$";
+    shopInfoName.textContent = armorName[gameData.armor+1].toLowerCase();
+    shopInfoNumber.textContent = "health: " + armorHealth[gameData.armor+1];
   }
 }
 
