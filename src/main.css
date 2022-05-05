@@ -122,11 +122,15 @@ body, html {
   left: 50%;
   top: 50%;
   width: 192px;
-  display: flex;
   flex-direction: column;
+  display: none;
   transform: translate(-50%, -50%);
   font-size: 12px;
   gap: 4px;
+}
+
+#shopmenu.visible {
+  display: flex;
 }
 
 #shopmenu .tabs {

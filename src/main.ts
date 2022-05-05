@@ -126,7 +126,10 @@ let gameData: GameData = {
   hp: 0,
   armor: 0,
   
-  shopOpen: false,
+  shop: {
+    open: false,
+    tab: 0,
+  },
 };
 
 export type GameData = {
@@ -153,7 +156,10 @@ export type GameData = {
   hp: number,
   armor: number,
   
-  shopOpen: boolean,
+  shop: {
+    open: boolean,
+    tab: number,
+  }
 };
 
 function toGlslArray(array: number[], type: "uint"): string {

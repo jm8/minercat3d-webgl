@@ -25,6 +25,7 @@ window.onmouseup = e => {
 // mouseDelta is reset every update
 let mouseDelta = vec2.create();
 window.addEventListener('mousemove', e => {
+  if (paused) return;
   if (!document.pointerLockElement) return;
   if (e.movementX !== -2) mouseDelta[0] += e.movementX;
   mouseDelta[1] += e.movementY;
@@ -38,49 +39,53 @@ export const playerWidth = 0.1875;
 const fly = false;
 
 const backpackSpan = document.getElementById("backpack")!;
+const shopButton = document.getElementById("shop")!;
 const sellAllButton = document.getElementById("sellall")!;
 const layerSpan = document.getElementById("layer")!;
 const cashSpan = document.getElementById("cash")!;
 const hpSpan = document.getElementById("hp")!;
+const shopInfoName = document.getElementById("shopinfoname")!;
+const shopInfoNumber = document.getElementById("shopinfonumber")!;
+const shopmenu = document.getElementById("shopmenu")!;
+const shopTabs = document.getElementById("shoptabs")!;
+const shopIcon = (document.getElementById("shopicon") as HTMLImageElement)!;
+const shopPrice = document.getElementById("shopprice")!;
 
 let sellAllClicked = false;
 
 sellAllButton.addEventListener('click', () => {
+  document.getElementById("canvas")!.requestPointerLock();
   sellAllClicked = true;
 })
 
+let shopButtonClicked = false;
+shopButton.addEventListener('click', () => {
+  if (paused) document.getElementById("canvas")!.requestPointerLock();
+  shopButtonClicked = true;
+})
+
+let tabClicked: number | null = null;
+
+for (let i = 0; i < shopTabs.children.length; i++) {
+  shopTabs.children[i].addEventListener('click', () => {
+    tabClicked = i;
+  });
+}
+
+// jank
+let paused = false;
+
 export function update(gameData: GameData, dt: number) {
-  mouse(dt, gameData);
-  if (!fly) {
-    gameData.velocity[1] -= 16 * dt;
-    if (gameData.velocity[1] < -30) {
-      gameData.velocity[1] = -30;
-    }
+  paused = gameData.shop.open;  
+
+  if (!paused) {
+    controls(gameData, dt);
   }
   
-  keyboard(dt, gameData);
-  move(gameData, dt);
-
-  if (pressedMouseButtons[0] && gameData.highlighted) {
-    gameData.blocks.damage(gameData.highlighted, pickaxeSpeed[gameData.pickaxe]*dt);
-  }
-
-  gameData.highlighted = raycast(gameData);
-  
-  if (sellAllClicked) {
-    vec3.zero(gameData.velocity);
-    vec3.copy(gameData.position, defaultPosition);
-    
-    for (const block of gameData.backpack) {
-      gameData.cash += blockTypeCash[block];
-    }
-    gameData.backpack.length = 0;
-    
-    sellAllClicked = false;
-  }
+  processButtons(gameData);
   
   layerSpan.textContent = (gameData.position[1] - eyeHeight).toFixed();
-  cashSpan.textContent = gameData.cash.toString() + "$";
+  cashSpan.textContent = toNumberString(gameData.cash) + "$";
   hpSpan.textContent = "hp:"+gameData.hp.toString();
   backpackSpan.textContent = `${gameData.backpack.length}/${backpackSpace[gameData.backpackType]}`
 
@@ -104,6 +109,81 @@ export function update(gameData: GameData, dt: number) {
 
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
+}
+
+function controls(gameData: GameData, dt: number) {
+    mouse(dt, gameData);
+    if (!fly) {
+        gameData.velocity[1] -= 16 * dt;
+        if (gameData.velocity[1] < -30) {
+            gameData.velocity[1] = -30;
+        }
+    }
+
+    keyboard(dt, gameData);
+    move(gameData, dt);
+
+    if (pressedMouseButtons[0] && gameData.highlighted) {
+        gameData.blocks.damage(gameData.highlighted, pickaxeSpeed[gameData.pickaxe] * dt);
+    }
+
+    gameData.highlighted = raycast(gameData);
+}
+
+function processButtons(gameData: GameData) {
+    if (sellAllClicked) {
+        vec3.zero(gameData.velocity);
+        vec3.copy(gameData.position, defaultPosition);
+
+        for (const block of gameData.backpack) {
+            gameData.cash += blockTypeCash[block];
+        }
+        gameData.backpack.length = 0;
+
+        sellAllClicked = false;
+    }
+
+    if (shopButtonClicked) {
+        if (gameData.shop.open) {
+            gameData.shop.open = false;
+            shopButton.textContent = "shop";
+            shopmenu.classList.remove("visible");
+        } else {
+            showShopData(gameData.shop.tab, gameData);
+            gameData.shop.open = true;
+            shopButton.textContent = "back";
+            shopmenu.classList.add("visible");
+        }
+
+        shopButtonClicked = false;
+    }
+
+    if (tabClicked !== null) {
+        for (let i = 0; i < shopTabs.children.length; i++) {
+            if (i == tabClicked)
+                shopTabs.children[i].classList.add("selected");
+            else
+                shopTabs.children[i].classList.remove("selected");
+        }
+        gameData.shop.tab = tabClicked;
+
+        showShopData(gameData.shop.tab, gameData);
+
+        tabClicked = null;
+    }
+}
+
+function showShopData(tab: number, gameData: GameData) {
+  if (tab === 0) {
+    shopIcon.src = `/minercat3d/pickaxe${gameData.pickaxe+1}.png`;
+    shopPrice.textContent = toNumberString(100) + "$";
+    shopInfoName.textContent = "ur mom pickaxe";
+    shopInfoNumber.textContent = "speed: " + toNumberString(7);
+  }
+}
+
+function toNumberString(x: number) {
+  return x.toFixed();
 }
 
 function raycast(gameData: GameData) {

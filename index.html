@@ -63,18 +63,18 @@
                         <div id="game">
                           <canvas width=480 height=360 style="width: 480px; height: 360px;" id="canvas"></canvas>
                           <div id="shopmenu">
-                            <div class="tabs">
-                              <button class="gamebutton selected tab pickaxetab"></button>
-                              <button class="gamebutton tab backpacktab"></button>
-                              <button class="gamebutton tab armortab"></button>
+                            <div id="shoptabs" class="tabs">
+                              <button class="gamebutton selected tab" id="pickaxetab"></button>
+                              <button class="gamebutton tab" id="backpacktab"></button>
+                              <button class="gamebutton tab" id="armortab"></button>
                             </div>
                             <div class="shopmain">
                               <div class="info">
-                                <div>stone pickaxe</div>
-                                <div>speed: 3</div>
+                                <div id="shopinfoname">stone pickaxe</div>
+                                <div id="shopinfonumber">speed: 3</div>
                               </div>
-                              <img class="icon" src="/pickaxe1.png">
-                              <div class="price">100$</div>
+                              <img id="shopicon" class="icon" src="/pickaxe1.png">
+                              <div id="shopprice" class="price">100$</div>
                               <button class="gamebutton">buy</button>
                             </div>
                           </div>
