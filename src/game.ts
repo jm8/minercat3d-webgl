@@ -41,7 +41,6 @@ const fly = false;
 const backpackSpan = document.getElementById("backpack")!;
 const shopButton = document.getElementById("shop")!;
 const sellAllButton = document.getElementById("sellall")!;
-const buyButton = document.getElementById("buy")!;
 const layerSpan = document.getElementById("layer")!;
 const cashSpan = document.getElementById("cash")!;
 const hpSpan = document.getElementById("hp")!;
@@ -59,18 +58,10 @@ sellAllButton.addEventListener('click', () => {
   sellAllClicked = true;
 })
 
-// jank
-let paused = false;
-
 let shopButtonClicked = false;
 shopButton.addEventListener('click', () => {
   if (paused) document.getElementById("canvas")!.requestPointerLock();
   shopButtonClicked = true;
-})
-
-let buyButtonClicked = false;
-buyButton.addEventListener('click', () => {
-  buyButtonClicked = true;
 })
 
 let tabClicked: number | null = null;
@@ -81,18 +72,21 @@ for (let i = 0; i < shopTabs.children.length; i++) {
   });
 }
 
+// jank
+let paused = false;
+
 export function update(gameData: GameData, dt: number) {
-  paused = gameData.shop.open;
+  paused = gameData.shop.open;  
 
   if (!paused) {
     controls(gameData, dt);
   }
-
+  
   processButtons(gameData);
-
+  
   layerSpan.textContent = (gameData.position[1] - eyeHeight).toFixed();
   cashSpan.textContent = toNumberString(gameData.cash) + "$";
-  hpSpan.textContent = "hp:" + gameData.hp.toString();
+  hpSpan.textContent = "hp:"+gameData.hp.toString();
   backpackSpan.textContent = `${gameData.backpackContents.length}/${backpackSpace[gameData.backpack]}`
 
 
@@ -118,99 +112,83 @@ export function update(gameData: GameData, dt: number) {
 }
 
 function controls(gameData: GameData, dt: number) {
-  mouse(dt, gameData);
-  if (!fly) {
-    gameData.velocity[1] -= 16 * dt;
-    if (gameData.velocity[1] < -30) {
-      gameData.velocity[1] = -30;
+    mouse(dt, gameData);
+    if (!fly) {
+        gameData.velocity[1] -= 16 * dt;
+        if (gameData.velocity[1] < -30) {
+            gameData.velocity[1] = -30;
+        }
     }
-  }
 
-  keyboard(dt, gameData);
-  move(gameData, dt);
+    keyboard(dt, gameData);
+    move(gameData, dt);
 
-  if (pressedMouseButtons[0] && gameData.highlighted) {
-    gameData.blocks.damage(gameData.highlighted, pickaxeSpeed[gameData.pickaxe] * dt);
-  }
+    if (pressedMouseButtons[0] && gameData.highlighted) {
+        gameData.blocks.damage(gameData.highlighted, pickaxeSpeed[gameData.pickaxe] * dt);
+    }
 
-  gameData.highlighted = raycast(gameData);
+    gameData.highlighted = raycast(gameData);
 }
 
 function processButtons(gameData: GameData) {
-  if (buyButtonClicked) {
-    if (gameData.shop.tab === 0 && gameData.pickaxe+1 < pickaxeCost.length && gameData.cash >= pickaxeCost[gameData.pickaxe+1]) {
-      gameData.cash -= pickaxeCost[gameData.pickaxe+1]
-      gameData.pickaxe++;
-    }
-    if (gameData.shop.tab === 1 && gameData.backpack+1 < backpackCost.length && gameData.cash >= backpackCost[gameData.backpack+1]) {
-      gameData.cash -= backpackCost[gameData.backpack+1]
-      gameData.backpack++;
-    }
-    if (gameData.shop.tab === 2 && gameData.armor+1 < armorCost.length && gameData.cash >= armorCost[gameData.armor+1]) {
-      gameData.cash -= armorCost[gameData.armor+1]
-      gameData.armor++;
-    }
-    showShopData(gameData.shop.tab, gameData);
-    buyButtonClicked = false;
-  }
-  if (sellAllClicked) {
-    vec3.zero(gameData.velocity);
-    vec3.copy(gameData.position, defaultPosition);
+    if (sellAllClicked) {
+        vec3.zero(gameData.velocity);
+        vec3.copy(gameData.position, defaultPosition);
 
-    for (const block of gameData.backpackContents) {
-      gameData.cash += blockTypeCash[block];
-    }
-    gameData.backpackContents.length = 0;
+        for (const block of gameData.backpackContents) {
+            gameData.cash += blockTypeCash[block];
+        }
+        gameData.backpackContents.length = 0;
 
-    sellAllClicked = false;
-  }
-
-  if (shopButtonClicked) {
-    if (gameData.shop.open) {
-      gameData.shop.open = false;
-      shopButton.textContent = "shop";
-      shopmenu.classList.remove("visible");
-    } else {
-      showShopData(gameData.shop.tab, gameData);
-      gameData.shop.open = true;
-      shopButton.textContent = "back";
-      shopmenu.classList.add("visible");
+        sellAllClicked = false;
     }
 
-    shopButtonClicked = false;
-  }
+    if (shopButtonClicked) {
+        if (gameData.shop.open) {
+            gameData.shop.open = false;
+            shopButton.textContent = "shop";
+            shopmenu.classList.remove("visible");
+        } else {
+            showShopData(gameData.shop.tab, gameData);
+            gameData.shop.open = true;
+            shopButton.textContent = "back";
+            shopmenu.classList.add("visible");
+        }
 
-  if (tabClicked !== null) {
-    for (let i = 0; i < shopTabs.children.length; i++) {
-      if (i == tabClicked)
-        shopTabs.children[i].classList.add("selected");
-      else
-        shopTabs.children[i].classList.remove("selected");
+        shopButtonClicked = false;
     }
-    gameData.shop.tab = tabClicked;
 
-    showShopData(gameData.shop.tab, gameData);
+    if (tabClicked !== null) {
+        for (let i = 0; i < shopTabs.children.length; i++) {
+            if (i == tabClicked)
+                shopTabs.children[i].classList.add("selected");
+            else
+                shopTabs.children[i].classList.remove("selected");
+        }
+        gameData.shop.tab = tabClicked;
 
-    tabClicked = null;
-  }
+        showShopData(gameData.shop.tab, gameData);
+
+        tabClicked = null;
+    }
 }
 
 function showShopData(tab: number, gameData: GameData) {
   if (tab === 0) {
-    shopIcon.src = `/minercat3d/pickaxe/pickaxe${gameData.pickaxe + 2}.png`;
-    shopPrice.textContent = pickaxeCost[gameData.pickaxe + 1] + "$";
-    shopInfoName.textContent = pickaxeName[gameData.pickaxe + 1].toLowerCase();
-    shopInfoNumber.textContent = "speed: " + pickaxeSpeed[gameData.pickaxe + 1];
+    shopIcon.src = `/minercat3d/pickaxe/pickaxe${gameData.pickaxe+2}.png`;
+    shopPrice.textContent = pickaxeCost[gameData.pickaxe+1] + "$";
+    shopInfoName.textContent = pickaxeName[gameData.pickaxe+1].toLowerCase();
+    shopInfoNumber.textContent = "speed: " + pickaxeSpeed[gameData.pickaxe+1];
   } else if (tab === 1) {
-    shopIcon.src = `/minercat3d/backpack/backpack${gameData.backpack + 2}.png`;
-    shopPrice.textContent = backpackCost[gameData.backpack + 1] + "$";
-    shopInfoName.textContent = backpackName[gameData.backpack + 1].toLowerCase();
-    shopInfoNumber.textContent = "space: " + backpackSpace[gameData.backpack + 1];
+    shopIcon.src = `/minercat3d/backpack/backpack${gameData.backpack+2}.png`;
+    shopPrice.textContent = backpackCost[gameData.backpack+1] + "$";
+    shopInfoName.textContent = backpackName[gameData.backpack+1].toLowerCase();
+    shopInfoNumber.textContent = "space: " + backpackSpace[gameData.backpack+1];
   } else if (tab === 2) {
-    shopIcon.src = `/minercat3d/armor/armor${gameData.armor + 2}.png`;
-    shopPrice.textContent = armorCost[gameData.armor + 1] + "$";
-    shopInfoName.textContent = armorName[gameData.armor + 1].toLowerCase();
-    shopInfoNumber.textContent = "health: " + armorHealth[gameData.armor + 1];
+    shopIcon.src = `/minercat3d/armor/armor${gameData.armor+2}.png`;
+    shopPrice.textContent = armorCost[gameData.armor+1] + "$";
+    shopInfoName.textContent = armorName[gameData.armor+1].toLowerCase();
+    shopInfoNumber.textContent = "health: " + armorHealth[gameData.armor+1];
   }
 }
 
@@ -231,7 +209,7 @@ function raycast(gameData: GameData) {
     if (gameData.blocks.getBlock(currBlock)) {
       return currBlock;
     }
-
+    
     i += .01;
   }
 
@@ -329,9 +307,9 @@ function move(gameData: GameData, dt: number) {
 function moveAxis(gameData: GameData, movement: vec3): boolean {
   const steps = 10;
   for (let i = 0; i < steps; i++) {
-    vec3.scaleAndAdd(gameData.position, gameData.position, movement, 1 / steps);
+    vec3.scaleAndAdd(gameData.position, gameData.position, movement, 1/steps);
     if (isColliding(gameData)) {
-      vec3.scaleAndAdd(gameData.position, gameData.position, movement, -1 / steps);
+      vec3.scaleAndAdd(gameData.position, gameData.position, movement, -1/steps);
       return true;
     }
   }
@@ -347,10 +325,10 @@ const corners = [
   vec3.fromValues(-playerWidth, foreheadHeight, playerWidth),
   vec3.fromValues(playerWidth, foreheadHeight, -playerWidth),
   vec3.fromValues(playerWidth, foreheadHeight, playerWidth),
-  vec3.fromValues(-playerWidth, (foreheadHeight - eyeHeight) / 2, -playerWidth),
-  vec3.fromValues(-playerWidth, (foreheadHeight - eyeHeight) / 2, playerWidth),
-  vec3.fromValues(playerWidth, (foreheadHeight - eyeHeight) / 2, -playerWidth),
-  vec3.fromValues(playerWidth, (foreheadHeight - eyeHeight) / 2, playerWidth),
+  vec3.fromValues(-playerWidth, (foreheadHeight-eyeHeight)/2, -playerWidth),
+  vec3.fromValues(-playerWidth, (foreheadHeight-eyeHeight)/2, playerWidth),
+  vec3.fromValues(playerWidth, (foreheadHeight-eyeHeight)/2, -playerWidth),
+  vec3.fromValues(playerWidth, (foreheadHeight-eyeHeight)/2, playerWidth),
 ];
 
 function isColliding(gameData: GameData): boolean {
