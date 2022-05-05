@@ -18,18 +18,26 @@ function error(message: string): never {
 }
 
 type ProgramInfo = {
-  program: WebGLProgram,
-  attribLocations: {
-    vertexPosition: number,
-    textureCoord: number,
-    block: number,
-  },
-  uniformLocations: {
-    projectionMatrix: WebGLUniformLocation,
-    modelViewMatrix: WebGLUniformLocation,
-    sampler: WebGLUniformLocation,
-    layerStart: WebGLUniformLocation,
-    highlighted: WebGLUniformLocation,
+  blocks: {
+    program: WebGLProgram,
+    attribLocations: {
+      vertexPosition: number,
+      textureCoord: number,
+      block: number,
+    },
+    uniformLocations: {
+      projectionMatrix: WebGLUniformLocation,
+      modelViewMatrix: WebGLUniformLocation,
+      sampler: WebGLUniformLocation,
+      layerStart: WebGLUniformLocation,
+      highlighted: WebGLUniformLocation,
+    }
+  }, pickaxe: {
+    program: WebGLProgram,
+    attribLocations: {
+      vertexPosition: number,
+      textureCoord: number,
+    }
   }
 };
 
@@ -107,14 +115,14 @@ let gameData: GameData = {
   velocity: vec3.create(),
 
   isOnGround: false,
-  
+
   pickaxe: 0,
-  
-  backpackType: 0,  
+
+  backpackType: 0,
   backpack: [],
-  
+
   cash: 0,
-  
+
   hp: 0,
   armor: 0,
 };
@@ -137,9 +145,9 @@ export type GameData = {
 
   backpackType: number,
   backpack: number[],
-  
+
   cash: number,
-  
+
   hp: number,
   armor: number,
 };
@@ -165,9 +173,7 @@ function main() {
 
   if (!gl) error("Unable to initialize WebGL2");
 
-  console.log(toGlslArray(blockTypeHealth, "uint"));
-
-  const vsSource = `#version 300 es
+  const blocksVsSource = `#version 300 es
 
     // vertex attributes
     in vec4 aVertexPosition;
@@ -234,7 +240,7 @@ function main() {
     }
   `;
 
-  const fsSource = `#version 300 es
+  const blocksFsSource = `#version 300 es
     precision mediump float;
     precision lowp sampler3D;    out vec4 fragColor;
   
@@ -267,27 +273,56 @@ function main() {
     }
   `;
 
-  const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+  const blocksShaderProgram = initShaderProgram(gl, blocksVsSource, blocksFsSource);
+
+  const pickaxeVsSource = `#version 300 es
+    precision mediump float;
+    in vec4 vertexPosition;
+    in vec2 textureCoord;
+  
+    void main() {
+      gl_Position = vertexPosition;
+    }
+  `
+
+  const pickaxeFsSource = `#version 300 es
+    precision mediump float;
+    out vec4 fragColor;
+  
+    void main() {
+      fragColor = vec4(1.0, 0.0, 1.0, 1.0);
+    }
+  `
+  const pickaxeShaderProgram = initShaderProgram(gl, pickaxeVsSource, pickaxeFsSource);
 
   const programInfo: ProgramInfo = {
-    program: shaderProgram,
-    attribLocations: {
-      vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-      textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
-      block: gl.getAttribLocation(shaderProgram, 'iBlock'),
-    },
-    uniformLocations: {
-      projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix') ?? error("couldn't find uniform uProjectionMatrix"),
-      modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix') ?? error("couldn't find uniform uModelViewMatrix"),
-      sampler: gl.getUniformLocation(shaderProgram, 'uSampler') ?? error("couldn't find uniform uSampler"),
-      layerStart: gl.getUniformLocation(shaderProgram, 'layerStart') ?? error("couldn't find uniform layerStart"),
-      highlighted: gl.getUniformLocation(shaderProgram, 'highlighted') ?? error("couldn't find uniform highlighted"),
+    blocks: {
+      program: blocksShaderProgram,
+      attribLocations: {
+        vertexPosition: gl.getAttribLocation(blocksShaderProgram, 'aVertexPosition'),
+        textureCoord: gl.getAttribLocation(blocksShaderProgram, 'aTextureCoord'),
+        block: gl.getAttribLocation(blocksShaderProgram, 'iBlock'),
+      },
+      uniformLocations: {
+        projectionMatrix: gl.getUniformLocation(blocksShaderProgram, 'uProjectionMatrix') ?? error("couldn't find uniform uProjectionMatrix"),
+        modelViewMatrix: gl.getUniformLocation(blocksShaderProgram, 'uModelViewMatrix') ?? error("couldn't find uniform uModelViewMatrix"),
+        sampler: gl.getUniformLocation(blocksShaderProgram, 'uSampler') ?? error("couldn't find uniform uSampler"),
+        layerStart: gl.getUniformLocation(blocksShaderProgram, 'layerStart') ?? error("couldn't find uniform layerStart"),
+        highlighted: gl.getUniformLocation(blocksShaderProgram, 'highlighted') ?? error("couldn't find uniform highlighted"),
+      }
+    }, pickaxe: {
+      program: pickaxeShaderProgram,
+      attribLocations: {
+        vertexPosition: gl.getAttribLocation(pickaxeShaderProgram, 'vertexPosition'),
+        textureCoord: gl.getAttribLocation(pickaxeShaderProgram, 'textureCoord'),
+      }
     }
   };
 
   const buffers = initBuffers(gl);
 
   const blocksTexture = loadTexture(gl, blocksPngUrl)
+
 
   let then = 0;
 
@@ -343,9 +378,15 @@ function loadShader(gl: WebGL2RenderingContext, type: number, source: string): W
 }
 
 type Buffers = {
-  vertexPosition: WebGLBuffer,
-  indices: WebGLBuffer,
-  textureCoord: WebGLBuffer,
+  blocks: {
+    vertexPosition: WebGLBuffer,
+    indices: WebGLBuffer,
+    textureCoord: WebGLBuffer,
+  },
+  pickaxe: {
+    vertexPosition: WebGLBuffer,
+    textureCoord: WebGLBuffer,
+  },
 }
 
 function loadTexture(gl: WebGL2RenderingContext, url: string): WebGLTexture {
@@ -489,14 +530,37 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
   const blocksBuffer = gl.createBuffer()!;
   gl.bindBuffer(gl.ARRAY_BUFFER, blocksBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, gameData.blocks.array, gl.DYNAMIC_DRAW);
+  
+  const pickaxeVertexBuffer = gl.createBuffer()!;
+  gl.bindBuffer(gl.ARRAY_BUFFER, pickaxeVertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    0, 0, 0,
+    1, 0, 0,
+    0, 1, 0,
+  ]), gl.STATIC_DRAW);
+  
+  const pickaxeTextureCoordBuffer = gl.createBuffer()!;
+  gl.bindBuffer(gl.ARRAY_BUFFER, pickaxeTextureCoordBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    0, 0,
+    1, 0,
+    0, 1,
+  ]), gl.STATIC_DRAW);
+  
 
   gameData.blocks.buffer = blocksBuffer;
   gameData.blocks.gl = gl;
 
   return {
-    vertexPosition: vertexPositionBuffer,
-    indices: indexBuffer,
-    textureCoord: textureCoordBuffer,
+    blocks: {
+      vertexPosition: vertexPositionBuffer,
+      indices: indexBuffer,
+      textureCoord: textureCoordBuffer,
+    },
+    pickaxe: {
+      vertexPosition: pickaxeVertexBuffer,
+      textureCoord: pickaxeTextureCoordBuffer,
+    }
   };
 }
 
@@ -535,16 +599,16 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
     const normalize = false;
     const stride = 0;
     const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertexPosition);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.blocks.vertexPosition);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexPosition,
+      programInfo.blocks.attribLocations.vertexPosition,
       numComponents,
       type,
       normalize,
       stride,
       offset,
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    gl.enableVertexAttribArray(programInfo.blocks.attribLocations.vertexPosition);
   }
 
   const playerLayer = Math.floor(-gameData.position[1]);
@@ -556,45 +620,45 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   const layerEnd = Math.max(0, Math.min(WORLD_DEPTH - 1, playerLayer + viewDistance));
   debug("layerEnd", layerEnd);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
-  gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.blocks.textureCoord);
+  gl.vertexAttribPointer(programInfo.blocks.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(programInfo.blocks.attribLocations.textureCoord);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, gameData.blocks.buffer);
   // 4 is sizeof UNSIGNED_INT
-  gl.vertexAttribIPointer(programInfo.attribLocations.block, 1, gl.UNSIGNED_INT, 0, layerStart * 4 * LAYER_SIZE);
-  gl.vertexAttribDivisor(programInfo.attribLocations.block, 1);
-  gl.enableVertexAttribArray(programInfo.attribLocations.block);
+  gl.vertexAttribIPointer(programInfo.blocks.attribLocations.block, 1, gl.UNSIGNED_INT, 0, layerStart * 4 * LAYER_SIZE);
+  gl.vertexAttribDivisor(programInfo.blocks.attribLocations.block, 1);
+  gl.enableVertexAttribArray(programInfo.blocks.attribLocations.block);
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.blocks.indices);
 
-  gl.useProgram(programInfo.program);
+  gl.useProgram(programInfo.blocks.program);
 
   gl.uniformMatrix4fv(
-    programInfo.uniformLocations.projectionMatrix,
+    programInfo.blocks.uniformLocations.projectionMatrix,
     false,
     projectionMatrix
   );
 
   gl.uniformMatrix4fv(
-    programInfo.uniformLocations.modelViewMatrix,
+    programInfo.blocks.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix
   );
 
   gl.uniform1i(
-    programInfo.uniformLocations.layerStart,
+    programInfo.blocks.uniformLocations.layerStart,
     layerStart,
   );
 
   gl.uniform3fv(
-    programInfo.uniformLocations.highlighted,
+    programInfo.blocks.uniformLocations.highlighted,
     gameData.highlighted ?? [0, 0, 0],
   )
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.uniform1i(programInfo.uniformLocations.sampler, 0);
+  gl.uniform1i(programInfo.blocks.uniformLocations.sampler, 0);
 
   {
     const offset = 0;
@@ -604,6 +668,11 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
 
     gl.drawElementsInstanced(gl.TRIANGLES, vertexCount, type, offset, instanceCount)
   }
+  
+  // gl.useProgram(programInfo.pickaxe.program);
+  // gl.bindBuffer(gl.ARRAY_BUFFER, buffers.pickaxe.vertexPosition);
+  // gl.vertexAttribPointer(programInfo.pickaxe.attribLocations.vertexPosition, 3, gl.FLOAT, false, 0, 0);
+  // gl.drawArrays(gl.TRIANGLES, 0, 1);
 }
 
 window.onload = main;
