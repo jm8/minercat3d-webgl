@@ -667,12 +667,12 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   }
 
   const playerLayer = Math.floor(-gameData.position[1]);
-  debug("playerLayer", playerLayer);
+  // debug("playerLayer", playerLayer);
 
   const layerStart = Math.min(Math.max(0, playerLayer - 25), WORLD_DEPTH - 1);
-  debug("layerStart", layerStart);
+  // debug("layerStart", layerStart);
   const layerEnd = Math.max(0, Math.min(WORLD_DEPTH - 1, playerLayer + 75));
-  debug("layerEnd", layerEnd);
+  // debug("layerEnd", layerEnd);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, buffers.blocks.textureCoord);
   gl.vertexAttribPointer(programInfo.blocks.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);

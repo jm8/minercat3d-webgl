@@ -1,16 +1,6 @@
-const debugs = new Map<string, string>();
-export function debug(name: string, value: any) {
-  debugs.set(name, JSON.stringify(value));
-}
-
 const el = document.getElementById("debug")!
-function renderDebug() {
-  let s = "";
-  for (const [n, v] of debugs) {
-    s += `${n}: ${v}` + "\n";
-  }
-  el.textContent = s;
-  requestAnimationFrame(renderDebug)
+export function debug(it: string) {
+  el.textContent = it;
 }
 
 window.addEventListener('keydown', (e) => {
@@ -20,4 +10,3 @@ window.addEventListener('keydown', (e) => {
   e.preventDefault();
 })
 
-requestAnimationFrame(renderDebug)

@@ -106,22 +106,39 @@ export function update(gameData: GameData, dt: number) {
   backpackSpan.textContent = `${gameData.backpackContents.length}/${backpackSpace[gameData.backpack]}`
 
 
-  debug("position", gameData.position)
-  debug("facing", gameData.facing)
-  debug("pitch", gameData.pitch)
-  debug("yaw", gameData.yaw)
-  debug("highlighted position", gameData.highlighted)
+  const vectorString = (v: vec3) => `[${v[0].toFixed(0)} ${v[1].toFixed(1)} ${v[2].toFixed(1)}]`;
+  let f3 = "";
+  f3 += `position: ${vectorString(gameData.position)}\n`;
+  f3 += `velocity: ${vectorString(gameData.velocity)}\n`;
+  f3 += `isOnGround: ${gameData.isOnGround}\n`;
+  f3 += `pitch: ${gameData.pitch.toFixed(1)} yaw: ${gameData.pitch.toFixed(2)}\n`;
   const blockType = gameData.blocks.getBlock(gameData.highlighted ?? [0, 0, 0]);
-  debug("highlighted block id", blockType)
-  debug("highlighted block health", gameData.blocks.getBlockHealth(gameData.highlighted ?? [0, 0, 0]))
-  debug("highlighted block max health", blockTypeHealth[blockType])
-  debug("highlighted block cash", blockTypeCash[blockType])
-  debug("velocity", gameData.velocity)
-  debug("isOnGround", gameData.isOnGround)
-  debug("pickaxe", gameData.pickaxe)
-  debug("pickaxe speed", pickaxeSpeed[gameData.pickaxe]);
-  debug("backpack", gameData.backpackContents);
-  debug("feetpos", gameData.position[1] - eyeHeight);
+  f3 += `pickaxe: ${gameData.pickaxe} ${pickaxeName[gameData.pickaxe]}\n`;
+  f3 += `  speed: ${pickaxeSpeed[gameData.pickaxe]}\n`;
+  f3 += `backpack: ${gameData.backpack} ${backpackName[gameData.pickaxe]}\n`;
+  f3 += `highlighted: ${gameData.highlighted ? vectorString(gameData.highlighted) : "null"} ${blockType}\n`;
+  f3 += `  health: ${gameData.blocks.getBlockHealth(gameData.highlighted ?? [0, 0, 0])} / ${blockTypeHealth[blockType]}\n`;
+  f3 += `  cash: ${blockTypeCash[blockType]}\n`;
+  let cashAfterSelling = gameData.cash;
+  for (const item of gameData.backpackContents) cashAfterSelling += blockTypeCash[item];
+  f3 += `cash after selling: ${toNumberString(cashAfterSelling)}$\n`
+
+  debug(f3)
+
+  // debug("facing", gameData.facing)
+  // debug("pitch", gameData.pitch)
+  // debug("yaw", gameData.yaw)
+  // debug("highlighted position", gameData.highlighted)
+  // debug("highlighted block id", blockType)
+  // debug("highlighted block health", gameData.blocks.getBlockHealth(gameData.highlighted ?? [0, 0, 0]))
+  // debug("highlighted block max health", blockTypeHealth[blockType])
+  // debug("highlighted block cash", blockTypeCash[blockType])
+  // debug("velocity", gameData.velocity)
+  // debug("isOnGround", gameData.isOnGround)
+  // debug("pickaxe", gameData.pickaxe)
+  // debug("pickaxe speed", pickaxeSpeed[gameData.pickaxe]);
+  // debug("backpack", gameData.backpackContents);
+  // debug("feetpos", gameData.position[1] - eyeHeight);
 
   justPressedKeys = Object.create(null);
   justPressedMouseButtons = Object.create(null);
@@ -146,8 +163,6 @@ function controls(gameData: GameData, dt: number) {
     gameData.miningTime = 0;
   }
   
-  debug("miningTime", gameData.miningTime);
-
   gameData.highlighted = raycast(gameData);
 }
 
