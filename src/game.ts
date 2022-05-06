@@ -9,16 +9,24 @@ window.onkeydown = e => {
   if (!pressedKeys[e.code]) justPressedKeys[e.code] = true;
   pressedKeys[e.code] = true;
 }
-window.onkeyup = e => pressedKeys[e.code] = false;
+window.onkeyup = e => {
+  pressedKeys[e.code] = false;
+}
 
 let pressedMouseButtons = Object.create(null);
 let justPressedMouseButtons = Object.create(null);
-window.onmousedown = e => {
-  justPressedMouseButtons[e.button] = true;
-  pressedMouseButtons[e.button] = true;
+const canvas = document.getElementById("canvas")!;
+canvas.onmousedown = e => {
+  if (document.pointerLockElement) {
+    justPressedMouseButtons[e.button] = true;
+    pressedMouseButtons[e.button] = true;
+  } else {
+    if (paused) shopButtonClicked = true;
+    canvas.requestPointerLock();
+  }
 }
 
-window.onmouseup = e => {
+canvas.onmouseup = e => {
   pressedMouseButtons[e.button] = false;
 }
 
@@ -133,7 +141,12 @@ function controls(gameData: GameData, dt: number) {
 
   if (pressedMouseButtons[0] && gameData.highlighted) {
     gameData.blocks.damage(gameData.highlighted, pickaxeSpeed[gameData.pickaxe] * dt);
+    gameData.miningTime += dt;
+  } else {
+    gameData.miningTime = 0;
   }
+  
+  debug("miningTime", gameData.miningTime);
 
   gameData.highlighted = raycast(gameData);
 }
@@ -309,7 +322,7 @@ function updateCameraFront(gameData: GameData) {
 }
 
 function keyboard(_dt: number, gameData: GameData) {
-  const speed = 8;
+  const speed = 4;
   const forward = vec3.copy(vec3.create(), gameData.facing);
   forward[1] = 0;
   vec3.normalize(forward, forward);
