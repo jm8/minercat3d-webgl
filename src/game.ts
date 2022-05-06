@@ -203,7 +203,7 @@ function showShopData(tab: number, gameData: GameData) {
       shopNotMax.classList.add("visible");
       shopMax.classList.remove("visible");
       shopIcon.src = `/minercat3d/pickaxe/pickaxe${gameData.pickaxe + 2}.png`;
-      shopPrice.textContent = pickaxeCost[gameData.pickaxe + 1] + "$";
+      shopPrice.textContent = toNumberString(pickaxeCost[gameData.pickaxe + 1]) + "$";
       shopInfoName.textContent = pickaxeName[gameData.pickaxe + 1].toLowerCase();
       shopInfoNumber.textContent = "speed: " + pickaxeSpeed[gameData.pickaxe + 1];
     } else {
@@ -215,7 +215,7 @@ function showShopData(tab: number, gameData: GameData) {
       shopNotMax.classList.add("visible");
       shopMax.classList.remove("visible");
     shopIcon.src = `/minercat3d/backpack/backpack${gameData.backpack + 2}.png`;
-    shopPrice.textContent = backpackCost[gameData.backpack + 1] + "$";
+    shopPrice.textContent = toNumberString(backpackCost[gameData.backpack + 1]) + "$";
     shopInfoName.textContent = backpackName[gameData.backpack + 1].toLowerCase();
     shopInfoNumber.textContent = "space: " + backpackSpace[gameData.backpack + 1];
     } else {
@@ -227,7 +227,7 @@ function showShopData(tab: number, gameData: GameData) {
       shopNotMax.classList.add("visible");
       shopMax.classList.remove("visible");
     shopIcon.src = `/minercat3d/armor/armor${gameData.armor + 2}.png`;
-    shopPrice.textContent = armorCost[gameData.armor + 1] + "$";
+    shopPrice.textContent = toNumberString(armorCost[gameData.armor + 1]) + "$";
     shopInfoName.textContent = armorName[gameData.armor + 1].toLowerCase();
     shopInfoNumber.textContent = "health: " + armorHealth[gameData.armor + 1];
     } else {
@@ -238,7 +238,18 @@ function showShopData(tab: number, gameData: GameData) {
 }
 
 function toNumberString(x: number) {
-  return x.toFixed();
+  const things: [number, string][] = [
+    [1000000000000, 't'],
+    [1000000000, 'b'],
+    [1000000, 'm'],
+    [1000, 'k'],
+  ]
+  for (const [num, suffix] of things) {
+    if (x >= num) {
+      return `${Math.floor(x / (num/10))/10}${suffix}`
+    }
+  }
+  return x.toString();
 }
 
 function raycast(gameData: GameData) {

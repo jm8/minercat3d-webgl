@@ -594,7 +594,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
 
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  const fieldOfView = Math.PI / 4;
+  const fieldOfView = 70 * Math.PI / 180;
   const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
   const zNear = 0.1;
   const zFar = 100.0;
@@ -627,11 +627,10 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
 
   const playerLayer = Math.floor(-gameData.position[1]);
   debug("playerLayer", playerLayer);
-  const viewDistance = 50;
 
-  const layerStart = Math.min(Math.max(0, playerLayer - viewDistance), WORLD_DEPTH - 1);
+  const layerStart = Math.min(Math.max(0, playerLayer - 25), WORLD_DEPTH - 1);
   debug("layerStart", layerStart);
-  const layerEnd = Math.max(0, Math.min(WORLD_DEPTH - 1, playerLayer + viewDistance));
+  const layerEnd = Math.max(0, Math.min(WORLD_DEPTH - 1, playerLayer + 75));
   debug("layerEnd", layerEnd);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, buffers.blocks.textureCoord);

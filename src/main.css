@@ -154,6 +154,9 @@ body, html {
   aspect-ratio: 1/1;
   flex: 1;
   background-color: rgba(0, 0, 0, 0.85);
+  background-size: 32px;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 #shopmenu .tab.selected {
