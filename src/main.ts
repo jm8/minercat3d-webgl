@@ -1,8 +1,8 @@
 import { mat4, vec3 } from 'gl-matrix';
-import { backpackSpace, BEDROCK, blockTypeHealth, pickaxeName } from './content';
+import { backpackSpace, BEDROCK, blockTypeHealth } from './content';
 import { eyeHeight, update } from './game';
 import { generate } from './worldgen';
-import blocksPngUrl from '../blocks.png'
+import atlasPngUrl from '../atlas.png'
 import { debug } from './debug';
 import './scratchyness';
 
@@ -41,6 +41,8 @@ type ProgramInfo = {
     uniformLocations: {
       projectionMatrix: WebGLUniformLocation | null,
       pickaxeMatrix: WebGLUniformLocation | null,
+      sampler: WebGLUniformLocation | null,
+      pickaxeNum: WebGLUniformLocation | null,
     }
   }
 };
@@ -251,11 +253,11 @@ function main() {
   
       isHighlighted = blockPosition == highlightedPosition ? 1.0 : 0.0;
   
-      vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 2.0);
+      vTextureCoord = (aTextureCoord + vec2(textureNum, 0.0)) / vec2(42.0, 4.0);
       
       float breakingProgress = 1.0 - (float(blockHealth) / float(blockTypeHealth[blockId]));
       uint breakingNum = uint(breakingProgress * 11.0);
-      vBreakingCoord = (aTextureCoord + vec2(breakingNum, 1.0)) / vec2(42.0, 2.0);
+      vBreakingCoord = (aTextureCoord + vec2(breakingNum, 1.0)) / vec2(42.0, 4.0);
     }
   `;
 
@@ -281,7 +283,7 @@ function main() {
       
  
       if (isHighlighted > 0.5) {
-        vec2 uv = fract(vTextureCoord * vec2(42.0, 2.0));
+        vec2 uv = fract(vTextureCoord * vec2(42.0, 4.0));
         float pickerWidth =  1.0 / 16.0;
         if (uv.x < pickerWidth || uv.x > 1. - pickerWidth || uv.y < pickerWidth || uv.y > 1. - pickerWidth) {
           fragColor = vec4(1.0);
@@ -303,7 +305,7 @@ function main() {
     
     uniform mat4 projectionMatrix;
     uniform mat4 pickaxeMatrix;  
-    
+  
     void main() {
       uv = textureCoord;
       gl_Position = projectionMatrix * (pickaxeMatrix * vertexPosition);
@@ -315,9 +317,21 @@ function main() {
     precision mediump float;
     out vec4 fragColor;
     in vec2 uv;
+
+    uniform sampler2D sampler;
+    uniform int pickaxeNum;
   
     void main() {
-      fragColor = vec4(uv.x, 0.0, 0.0, 1.0);
+      vec2 aaa = uv;
+      aaa.x = 1.0-aaa.x;
+      aaa.y = 1.0-aaa.y;
+      aaa.x /= 1.5;
+      aaa.y /= 1.5;
+      aaa.y = 1.0-aaa.y;
+  
+      fragColor = texture(sampler, (aaa + vec2(pickaxeNum, 1)) / vec2(21.0, 2.0));
+      if (fragColor.a == 0.0) discard;
+      // fragColor = vec4(aaa, 0.0, 1.0);
     }
   `
   const pickaxeShaderProgram = initShaderProgram(gl, pickaxeVsSource, pickaxeFsSource);
@@ -346,13 +360,15 @@ function main() {
       uniformLocations: {
         projectionMatrix: gl.getUniformLocation(pickaxeShaderProgram, 'projectionMatrix'),
         pickaxeMatrix: gl.getUniformLocation(pickaxeShaderProgram, 'pickaxeMatrix'),
+        sampler: gl.getUniformLocation(pickaxeShaderProgram, 'sampler'),
+        pickaxeNum: gl.getUniformLocation(pickaxeShaderProgram, 'pickaxeNum'),
       }
     }
   };
 
   const buffers = initBuffers(gl);
 
-  const blocksTexture = loadTexture(gl, blocksPngUrl)
+  const blocksTexture = loadTexture(gl, atlasPngUrl)
 
 
   let then = 0;
@@ -364,7 +380,7 @@ function main() {
 
     update(gameData, dt);
 
-    drawScene(gl!, blocksTexture, programInfo, buffers, dt);
+    drawScene(gl!, blocksTexture, programInfo, buffers);
 
     requestAnimationFrame(render);
   }
@@ -582,8 +598,8 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
     1, 0,
     0, 1,
     0, 1,
-    1, 0,
     1, 1,
+    1, 0,
   ]), gl.STATIC_DRAW);
 
 
@@ -603,7 +619,7 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
   };
 }
 
-function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInfo: ProgramInfo, buffers: Buffers, dt: number) {
+function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInfo: ProgramInfo, buffers: Buffers) {
   const skyColor = vec3.fromValues(.40, 1, .996);
   const caveColor = vec3.fromValues(0, .192, .188);
 
@@ -719,7 +735,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   
   const pickaxeMatrix = mat4.create();
   mat4.translate(pickaxeMatrix, pickaxeMatrix, [.55, -.75, -1.5])
-  mat4.rotateY(pickaxeMatrix, pickaxeMatrix, -Math.PI / 4);
+  mat4.rotateY(pickaxeMatrix, pickaxeMatrix, -Math.PI / 3);
   mat4.rotateZ(pickaxeMatrix, pickaxeMatrix, Math.sin(gameData.miningTime * 20)*25*Math.PI/180);
   // mat4.fromRotationTranslationScaleOrigin(pickaxeMatrix, )
 
@@ -728,6 +744,9 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   gl.bindBuffer(gl.ARRAY_BUFFER, buffers.pickaxe.textureCoord);
   gl.vertexAttribPointer(programInfo.pickaxe.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(programInfo.pickaxe.attribLocations.textureCoord);
+  
+  gl.uniform1i(programInfo.pickaxe.uniformLocations.sampler, 0);
+  gl.uniform1i(programInfo.pickaxe.uniformLocations.pickaxeNum, gameData.pickaxe);
 
 
   gl.drawArrays(gl.TRIANGLES, 0, 6);

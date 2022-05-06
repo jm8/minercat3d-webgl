@@ -218,7 +218,7 @@ function showShopData(tab: number, gameData: GameData) {
       shopIcon.src = `/minercat3d/pickaxe/pickaxe${gameData.pickaxe + 2}.png`;
       shopPrice.textContent = toNumberString(pickaxeCost[gameData.pickaxe + 1]) + "$";
       shopInfoName.textContent = pickaxeName[gameData.pickaxe + 1].toLowerCase();
-      shopInfoNumber.textContent = "speed: " + pickaxeSpeed[gameData.pickaxe + 1];
+      shopInfoNumber.textContent = "speed: " + toNumberString(pickaxeSpeed[gameData.pickaxe + 1]);
     } else {
       shopNotMax.classList.remove("visible");
       shopMax.classList.add("visible");
@@ -230,7 +230,7 @@ function showShopData(tab: number, gameData: GameData) {
     shopIcon.src = `/minercat3d/backpack/backpack${gameData.backpack + 2}.png`;
     shopPrice.textContent = toNumberString(backpackCost[gameData.backpack + 1]) + "$";
     shopInfoName.textContent = backpackName[gameData.backpack + 1].toLowerCase();
-    shopInfoNumber.textContent = "space: " + backpackSpace[gameData.backpack + 1];
+    shopInfoNumber.textContent = "space: " + toNumberString(backpackSpace[gameData.backpack + 1]);
     } else {
       shopNotMax.classList.remove("visible");
       shopMax.classList.add("visible");
@@ -242,7 +242,7 @@ function showShopData(tab: number, gameData: GameData) {
     shopIcon.src = `/minercat3d/armor/armor${gameData.armor + 2}.png`;
     shopPrice.textContent = toNumberString(armorCost[gameData.armor + 1]) + "$";
     shopInfoName.textContent = armorName[gameData.armor + 1].toLowerCase();
-    shopInfoNumber.textContent = "health: " + armorHealth[gameData.armor + 1];
+    shopInfoNumber.textContent = "health: " + toNumberString(armorHealth[gameData.armor + 1]);
     } else {
       shopNotMax.classList.remove("visible");
       shopMax.classList.add("visible");
