@@ -51,6 +51,7 @@ type ProgramInfo = {
       vertexPosition: number,
       textureCoord: number,
       itemPosition: number,
+      itemType: number,
     },
     uniformLocations: {
       projectionMatrix: WebGLUniformLocation | null,
@@ -353,6 +354,7 @@ function main() {
     in vec2 textureCoord;
   
     in vec3 itemPosition;
+    in float itemType;
     
     out vec2 uv;
   
@@ -360,8 +362,29 @@ function main() {
     uniform mat4 uProjectionMatrix;
     
     void main() {
+      vec3 pos = itemPosition + vec3(0, .2, 0);
+  
+      
+      mat4 translation = mat4(
+        vec4(1, 0, 0, 0),
+        vec4(0, 1, 0, 0),
+        vec4(0, 0, 1, 0),
+        vec4(pos, 1)
+      );
+      
+      mat4 m = uModelViewMatrix * translation;
+      
+      m[0][0] = 1.0;
+      m[0][1] = 0.0;
+      m[0][2] = 0.0;
+
+      m[2][0] = 0.0;
+      m[2][1] = 0.0;
+      m[2][2] = 1.0;
+ 
+
       uv = textureCoord;
-      gl_Position = uProjectionMatrix * (uModelViewMatrix * (vertexPosition + vec4(itemPosition, 0)));
+      gl_Position = uProjectionMatrix * (m * vertexPosition);
     }
   `;
   
@@ -381,7 +404,7 @@ function main() {
     blocks: {
       program: blocksShaderProgram,
       attribLocations: {
-        vertexPosition: gl.getAttribLocation(blocksShaderProgram, 'aVertexPosition'),
+        vertexPositin: gl.getAttribLocation(blocksShaderProgram, 'aVertexPosition'),
         textureCoord: gl.getAttribLocation(blocksShaderProgram, 'aTextureCoord'),
         block: gl.getAttribLocation(blocksShaderProgram, 'iBlock'),
       },
@@ -412,6 +435,7 @@ function main() {
         vertexPosition: gl.getAttribLocation(itemShaderProgram, 'vertexPosition'),
         textureCoord: gl.getAttribLocation(itemShaderProgram, 'textureCoord'),
         itemPosition: gl.getAttribLocation(itemShaderProgram, 'itemPosition'),
+        itemType: gl.getAttribLocation(itemShaderProgram, 'itemType'),
       },
       uniformLocations: {
         modelViewMatrix: gl.getUniformLocation(itemShaderProgram, 'uModelViewMatrix'),
@@ -491,7 +515,7 @@ type Buffers = {
   item: {
     vertexPosition: WebGLBuffer,
     textureCoord: WebGLBuffer,
-    itemPosition: WebGLBuffer,
+    itemBuffer: WebGLBuffer,
   },
 }
 
@@ -663,14 +687,17 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
   
   const itemVertexPositionBuffer = gl.createBuffer()!;
   gl.bindBuffer(gl.ARRAY_BUFFER, itemVertexPositionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    -.5, 1, 0,
-    .5, 1, 0,
-    -.5, 0, 0,
-    -.5, 0, 0,
-    .5, 0, 0,
-    .5, 1, 0,
-  ]), gl.STATIC_DRAW);
+  {
+    const itemWidth = .5;
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -itemWidth/2, itemWidth, 0,
+      itemWidth/2, itemWidth, 0,
+      -itemWidth/2, 0, 0,
+      -itemWidth/2, 0, 0,
+      itemWidth/2, 0, 0,
+      itemWidth/2, itemWidth, 0,
+    ]), gl.STATIC_DRAW);
+  }
   
   // I could just use the pickaxe buffer for this but whatev
   const itemTextureCoordBuffer = gl.createBuffer()!;
@@ -684,10 +711,11 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
     1, 0,
   ]), gl.STATIC_DRAW);
   
-  const itemPositionBuffer = gl.createBuffer()!;
-  gl.bindBuffer(gl.ARRAY_BUFFER, itemPositionBuffer);
+  const itemBuffer = gl.createBuffer()!;
+  gl.bindBuffer(gl.ARRAY_BUFFER, itemBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    12, 0, 12,
+    12, -5, 12, 4,
+    6, -5, 12, 30,
   ]), gl.STATIC_DRAW);
 
   gameData.blocks.buffer = blocksBuffer;
@@ -706,7 +734,7 @@ function initBuffers(gl: WebGL2RenderingContext): Buffers {
     item: {
       vertexPosition: itemVertexPositionBuffer,
       textureCoord: itemTextureCoordBuffer,
-      itemPosition: itemPositionBuffer,
+      itemBuffer: itemBuffer,
     }
   };
 }
@@ -857,14 +885,15 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   gl.vertexAttribPointer(programInfo.item.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(programInfo.item.attribLocations.textureCoord);
   
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.item.itemPosition);
-  gl.vertexAttribPointer(programInfo.item.attribLocations.itemPosition, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.item.itemBuffer);
+  gl.vertexAttribPointer(programInfo.item.attribLocations.itemPosition, 3, gl.FLOAT, false, 4, 0);
+  // gl.vertexAttribPointer(programInfo.item.attribLocations.itemType, 3, gl.FLOAT, false, 4, 3);
   gl.vertexAttribDivisor(programInfo.item.attribLocations.itemPosition, 1);
   
   gl.uniformMatrix4fv(programInfo.item.uniformLocations.projectionMatrix, false, projectionMatrix);
   gl.uniformMatrix4fv(programInfo.item.uniformLocations.modelViewMatrix, false, modelViewMatrix);
   
-  gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+  gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 2);
 }
 
 window.onload = main;
