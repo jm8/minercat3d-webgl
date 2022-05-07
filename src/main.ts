@@ -623,7 +623,7 @@ function drawScene(gl: WebGL2RenderingContext, texture: WebGLTexture, programInf
   const skyColor = vec3.fromValues(.40, 1, .996);
   const caveColor = vec3.fromValues(0, .192, .188);
 
-  const mix = Math.max(0, Math.min(1, -gameData.position[1] / 10));
+  const mix = Math.max(0, Math.min(1, -(gameData.position[1] + 5) / 10));
   const color = vec3.create();
   vec3.scale(color, skyColor, 1 - mix);
   vec3.scaleAndAdd(color, color, caveColor, mix);
