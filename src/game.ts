@@ -283,18 +283,19 @@ function toNumberString(x: number) {
 function raycast(gameData: GameData) {
   const highlightDist = 5;
 
-  const curr = vec3.create();
+  const curr = vec3.copy(vec3.create(), gameData.position);
   const currBlock = vec3.create();
+  
+  const step = vec3.scale(vec3.create(), gameData.facing, .03);
 
-  let i = 0;
-  while (i < highlightDist) {
-    vec3.scaleAndAdd(curr, gameData.position, gameData.facing, i);
-    toBlockCoords(currBlock, curr);
-    if (gameData.blocks.getBlock(currBlock)) {
-      return currBlock;
+  while (vec3.sqrDist(curr, gameData.position) < highlightDist*highlightDist) {
+    for (let i = 0; i < 3; i++) {
+      curr[i] += step[i]
+      toBlockCoords(currBlock, curr);
+      if (gameData.blocks.getBlock(currBlock)) {
+        return currBlock;
+      }
     }
-
-    i += .01;
   }
 
   return null;
