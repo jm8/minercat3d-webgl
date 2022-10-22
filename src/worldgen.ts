@@ -112,10 +112,10 @@ export function generate(blocks: Blocks) {
   for (let y = 0; y < WORLD_DEPTH; y++) {
     for (let x = 0; x < WORLD_SIZE; x++) {
       for (let z = 0; z < WORLD_SIZE; z++) {
-        blocks.setBlockHealth([x,y,z], blockTypeHealth[blocks.getBlock([x, y, z])])
-        }
+        blocks.setBlockHealth([x, y, z], blockTypeHealth[blocks.getBlock([x, y, z])])
       }
     }
+  }
 }
 
 function makeBlocks(blocks: Blocks) {
@@ -154,8 +154,8 @@ function makeCaves(blocks: Blocks) {
     for (let x = 0; x < WORLD_SIZE; x++) {
       for (let z = 0; z < WORLD_SIZE; z++) {
         let fade = Math.max(0, Math.min(1, (y - 5) / 5))
-        fade *= Math.min(8, Math.min(x, WORLD_SIZE-x))/8
-        fade *= Math.min(8, Math.min(z, WORLD_SIZE-z))/8
+        fade *= Math.min(8, Math.min(x, WORLD_SIZE - x)) / 8
+        fade *= Math.min(8, Math.min(z, WORLD_SIZE - z)) / 8
         const mult = .08;
         const threshold = 0.35;
         const isCave = simplex.noise3D(x * mult, y * mult, z * mult) * fade > threshold;
